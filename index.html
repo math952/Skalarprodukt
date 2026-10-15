@@ -3,44 +3,36 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vektor-Dreieck</title>
+<title>Vektor-Empfehler</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>:root{color-scheme:light}body{margin:0}</style>
 <style>
-  /* Oben Schritte und Optionen, darunter links die Zeichnung, rechts die Zahlen; auf dem Handy untereinander. */
+  /* Einspaltig in dieser Reihenfolge: Favorit, Präferenzen, Abbildung, Ranking. */
   :root {
     --bg: #edf0f2;
     --surface: #ffffff;
     --ink: #121a1f;
     --muted: #5d6b74;
     --line: #d9dfe3;
-    --grid: #e6eaed;
     --accent: #0a7c78;
     --accent-ink: #ffffff;
     --accent-soft: #dff1ef;
-    --cu: #0a7c78;
-    --cv: #3f55b8;
-    --cw: #b8560b;
-    --cp: #7b3fa3;
-    --cq: #c0306e;
-    --cd: #1d8f4e;
+    --mark: #b8560b;
     --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
     --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --bg: #0e1316; --surface: #161d21; --ink: #e8eef1; --muted: #8fa0aa; --line: #263036; --grid: #1e272c;
-      --accent: #4cc9bf; --accent-ink: #062321; --accent-soft: #14312f;
-      --cu: #4cc9bf; --cv: #8da2ff; --cw: #f2a65a; --cp: #c79bf0; --cq: #f58ab5; --cd: #5fd391;
+      --bg: #0e1316; --surface: #161d21; --ink: #e8eef1; --muted: #8fa0aa;
+      --line: #263036; --accent: #4cc9bf; --accent-ink: #062321; --accent-soft: #14312f; --mark: #f2a65a;
       color-scheme: dark;
     }
   }
   :root[data-theme="dark"] {
-    --bg: #0e1316; --surface: #161d21; --ink: #e8eef1; --muted: #8fa0aa; --line: #263036; --grid: #1e272c;
-    --accent: #4cc9bf; --accent-ink: #062321; --accent-soft: #14312f;
-    --cu: #4cc9bf; --cv: #8da2ff; --cw: #f2a65a; --cp: #c79bf0; --cq: #f58ab5; --cd: #5fd391;
+    --bg: #0e1316; --surface: #161d21; --ink: #e8eef1; --muted: #8fa0aa;
+    --line: #263036; --accent: #4cc9bf; --accent-ink: #062321; --accent-soft: #14312f; --mark: #f2a65a;
     color-scheme: dark;
   }
 
@@ -51,500 +43,676 @@
     padding-inline: 16px; padding-block: 32px 48px;
   }
   [hidden] { display: none !important; }
-  .wrap { max-width: 1040px; margin: 0 auto; }
-  header { margin-bottom: 20px; }
+  .wrap { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+  header p { margin: 0; color: var(--muted); max-width: 60ch; }
   h1 { font-size: clamp(1.6rem, 4vw, 2.2rem); line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 8px; text-wrap: balance; }
-  header p { margin: 0; color: var(--muted); max-width: 64ch; }
+  h2 { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
   .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 
-  .controls { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; margin-bottom: 16px; }
-  .control { display: flex; flex-direction: column; gap: 4px; }
+  /* Favorit */
+  .picker { display: flex; flex-direction: column; gap: 10px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .chips .eyebrow { width: 52px; flex: none; }
+  .chip, .more-select {
+    font: inherit; font-size: 13px; font-weight: 500; color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer;
+  }
+  .chip:hover { background: var(--accent-soft); }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .more-select { max-width: 100%; }
+
+  /* Präferenzen */
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .panel-top { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; }
+  .u-vector {
+    font-family: var(--font-mono); font-weight: 600; font-size: 14px; line-height: 1.6;
+    background: var(--accent-soft); color: var(--accent); border-radius: 6px; padding: 8px 10px;
+    overflow-x: auto; white-space: nowrap; min-width: 0; max-width: 100%;
+  }
+  .sliders { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 28px; }
+  .group { grid-column: 1 / -1; margin-top: 4px; }
+  .group:first-child { margin-top: 0; }
+  .slider label { display: flex; justify-content: space-between; font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+  .slider output { font-family: var(--font-mono); color: var(--accent); font-weight: 600; }
+  input[type="range"] { width: 100%; accent-color: var(--accent); margin: 0; display: block; }
+
   .seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
-  .seg button { font: inherit; font-size: 13px; font-weight: 500; color: var(--ink); background: transparent; border: 0; padding: 7px 12px; cursor: pointer; }
+  .seg button {
+    font: inherit; font-size: 13px; font-weight: 500; color: var(--ink);
+    background: transparent; border: 0; padding: 6px 10px; cursor: pointer;
+  }
   .seg button + button { border-left: 1px solid var(--line); }
   .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
   .seg button:hover:not([aria-pressed="true"]) { background: var(--accent-soft); }
-  .ghost:disabled { opacity: 0.45; cursor: default; }
-  .ghost { font: inherit; font-size: 13px; font-weight: 500; color: var(--accent); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
-  .ghost:hover { background: var(--accent-soft); }
-  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-bottom: 12px; }
+  .control { display: flex; flex-direction: column; gap: 4px; }
 
-  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
-  @media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); } }
-  figure { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px; min-width: 0; }
-  svg { width: 100%; height: auto; display: block; touch-action: none; user-select: none; -webkit-user-select: none; }
-  figcaption { font-size: 12.5px; color: var(--muted); padding: 6px 8px 4px; }
-
-  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-  .vrow { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font-family: var(--font-mono); font-size: 14px; }
-  .vrow b { font-weight: 600; }
-  .vrow span:last-child { text-align: right; }
-  .cu { color: var(--cu); } .cv { color: var(--cv); } .cw { color: var(--cw); } .ch { color: var(--cp); } .cx { color: var(--cq); } .cd { color: var(--cd); }
-  .rows { display: flex; flex-direction: column; gap: 6px; }
-  .eq { border-top: 1px solid var(--line); padding-top: 12px; display: flex; flex-direction: column; gap: 6px; font-family: var(--font-mono); font-size: 13.5px; }
-  .eq .big { font-size: 14px; font-weight: 600; }
-  .step-eq { display: flex; flex-direction: column; gap: 2px; }
-  .step-eq .ttl { font-family: var(--font-body); font-size: 12px; color: var(--muted); }
-  .step-eq .f { font-weight: 600; font-size: 13.5px; }
-  .step-eq .n { color: var(--muted); font-size: 13px; }
-  .bars { display: flex; flex-direction: column; gap: 4px; font-family: var(--font-body); }
-  .bars .ttl { font-size: 12px; color: var(--muted); }
-  .bar2 { display: flex; height: 14px; background: var(--grid); border-radius: 4px; overflow: hidden; }
-  .bar2 i { display: block; height: 100%; }
-  .bar2 .b-u { background: var(--cu); } .bar2 .b-v { background: var(--cv); } .bar2 .b-w { background: var(--cw); }
-  .bar2 .b-h { background: var(--cp); } .bar2 .b-q { background: var(--cq); }
-  .bar2 .b-d { background: var(--cd); }
-  .bar2 .b-d.neg { background: repeating-linear-gradient(45deg, var(--cd) 0 4px, transparent 4px 8px); }
-  .bar2 i + i { border-left: 2px solid var(--surface); }
-  .fbar { margin-top: 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: center; }
-  .fbar-text { flex: 1 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 6px; font-family: var(--font-mono); }
-  .fls { display: flex; flex-direction: column; gap: 6px; }
-  .fl { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 2px 12px; align-items: baseline; }
-  @media (max-width: 520px) { .fl { grid-template-columns: minmax(0, 1fr); } }
-  .fl .tg { font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-  .fl .fx { font-size: 14.5px; overflow-wrap: anywhere; }
-  .fl.prev .fx { color: var(--muted); }
-  .fl.mid .fx { color: var(--muted); }
-  .fl.now .fx { font-size: 16px; font-weight: 600; border-left: 3px solid var(--cd); padding-left: 10px; }
-  .fl mark { color: inherit; border-radius: 3px; padding: 0 3px; }
-  .fl mark.old { background: color-mix(in srgb, #d6403a 26%, transparent); }
-  .fl mark.new { background: color-mix(in srgb, var(--cd) 24%, transparent); }
-  .fbar .fnote { font-family: var(--font-body); font-size: 13px; color: var(--muted); }
-  .fbar .fn { color: var(--muted); font-size: 13.5px; overflow-wrap: anywhere; }
-  #fbBars { flex: 1 1 300px; min-width: 0; }
-  #fbBars:empty { display: none; }
-  .left { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-  .qs { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
-  .qs details { border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 13.5px; }
-  .qs summary { cursor: pointer; font-weight: 500; }
-  .qs details[open] summary { margin-bottom: 6px; }
-  .qs .ans { margin: 0; color: var(--muted); border-left: 3px solid var(--accent); padding-left: 10px; }
-  .note { font-size: 13px; color: var(--muted); border-left: 3px solid var(--accent); padding-left: 10px; }
-  .check { font-weight: 600; color: var(--accent); }
-
-  /* Zeichnung */
-  svg text { font-family: var(--font-body); font-size: 15px; fill: var(--muted); }
-  svg .ext { stroke: var(--cu); stroke-width: 1.5; stroke-dasharray: 2 5; opacity: 0.45; }
-  svg .foot { stroke: var(--cp); stroke-width: 2; stroke-dasharray: 6 4; }
-  svg .rtm { stroke: var(--cp); stroke-width: 1.5; fill: none; }
-  svg .seg-p { stroke: var(--cq); stroke-width: 6; stroke-linecap: round; }
-  svg .seg-q { stroke: var(--cq); stroke-width: 6; stroke-linecap: round; opacity: 0.35; }
-  svg .xfer { stroke: var(--cd); stroke-width: 1.5; stroke-dasharray: 2 4; stroke-linecap: round; fill: none; }
-  svg .rect { fill: var(--cd); fill-opacity: 0.16; stroke: var(--cd); stroke-width: 2; stroke-linejoin: round; }
-  svg .rect.neg { fill-opacity: 0.07; stroke-dasharray: 6 4; }
-  svg .tri-h { fill: var(--cp); fill-opacity: 0.1; stroke: none; }
-  svg .t-d { fill: var(--cd); }
-  svg .t-h { fill: var(--cp); } svg .t-x, svg .t-q { fill: var(--cq); }
-  svg .sq-h { fill: var(--cp); stroke: var(--cp); }
-  svg .sq-q, svg .sq-x { fill: var(--cq); stroke: var(--cq); }
-  svg .lbl { font-weight: 700; font-size: 17px; }
-  svg .nm { font-weight: 600; font-size: 12px; letter-spacing: 0.02em; }
-  svg .area { font-family: var(--font-mono); font-size: 13px; font-weight: 600; text-anchor: middle; }
-  svg .sq { fill-opacity: 0.16; stroke-width: 1.5; stroke-linejoin: round; }
-  svg .sq-ghost { fill: none; stroke-width: 1.5; stroke-dasharray: 5 4; opacity: 0.7; }
-  svg .tri-u, svg .sq-u { fill: var(--cu); stroke: var(--cu); }
-  svg .tri-v, svg .sq-v { fill: var(--cv); stroke: var(--cv); }
-  svg .tri-w, svg .sq-w { fill: var(--cw); stroke: var(--cw); }
-  svg .sq-ghost.g-h { stroke: var(--cp); } svg .sq-ghost.g-q, svg .sq-ghost.g-x { stroke: var(--cq); }
-  svg .sq-ghost.g-u { stroke: var(--cu); } svg .sq-ghost.g-v { stroke: var(--cv); } svg .sq-ghost.g-w { stroke: var(--cw); }
-  svg .vec { stroke-width: 3.5; stroke-linecap: round; }
-  svg .vec.u { stroke: var(--cu); } svg .vec.v { stroke: var(--cv); } svg .vec.w { stroke: var(--cw); }
-  svg .head.u { fill: var(--cu); } svg .head.v { fill: var(--cv); } svg .head.w { fill: var(--cw); }
-  svg .t-u { fill: var(--cu); } svg .t-v { fill: var(--cv); } svg .t-w { fill: var(--cw); }
+  /* Abbildung */
+  .fav-box { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; margin-top: 14px; max-width: 100%; }
+  .v-vector { background: var(--surface); color: var(--ink); border: 1px solid var(--line); }
+  .fav-name { font-size: 1.15rem; font-weight: 700; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .tag { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; }
+  .meta { font-size: 12px; color: var(--muted); }
+  .v { font-family: var(--font-mono); font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+  figure { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px; min-width: 0; }
+  figcaption { font-size: 12.5px; color: var(--muted); margin-top: 8px; }
+  svg { width: 100%; height: auto; display: block; }
+  #svgMain { max-width: 520px; margin-inline: auto; }
+  svg text { font-family: var(--font-body); font-size: 13px; fill: var(--muted); }
+  svg .big { font-family: var(--font-mono); font-size: 17px; font-weight: 600; fill: var(--ink); }
+  svg .t-ink { fill: var(--ink); font-weight: 600; }
+  svg .t-acc { fill: var(--accent); font-weight: 600; }
+  svg .t-mark { fill: var(--mark); font-weight: 600; }
+  svg .axis { stroke: var(--line); stroke-width: 1.5; }
+  svg .unit { stroke: var(--line); stroke-width: 1.5; fill: none; }
+  svg .vv { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+  svg .vv-head { fill: var(--ink); }
+  svg .uu { stroke: var(--accent); stroke-width: 3; stroke-linecap: round; }
+  svg .uu-head { fill: var(--accent); }
+  svg .drop { stroke: var(--muted); stroke-width: 1.5; stroke-dasharray: 5 4; fill: none; }
+  svg .proj { stroke: var(--mark); stroke-width: 5; stroke-linecap: round; }
   svg .arc { stroke: var(--muted); stroke-width: 1.5; fill: none; }
-  svg [data-h] { cursor: grab; outline: none; }
-  svg [data-h]:active { cursor: grabbing; }
-  svg .hit { fill: transparent; }
-  svg .dot { stroke: var(--surface); stroke-width: 2.5; }
-  svg .ring { fill: none; stroke-width: 2; opacity: 0; }
-  svg [data-h]:focus-visible .ring { opacity: 1; }
-  svg [data-h]:hover .ring { opacity: 0.5; }
+  svg .xfer { stroke: var(--mark); stroke-width: 1.5; stroke-dasharray: 2 4; stroke-linecap: round; fill: none; }
+  svg .rect { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2; }
+  svg .rect-top { fill: none; stroke: var(--muted); stroke-width: 2; stroke-dasharray: 7 5; }
+  .legend { display: flex; flex-direction: column; gap: 6px; font-size: 13px; margin-top: 8px; }
+  .legend > div { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: center; }
+  .sw { width: 22px; height: 12px; border-radius: 2px; flex: none; }
+  .sw.fav { background: var(--accent-soft); border: 2px solid var(--accent); }
+  .sw.top { border: 2px dashed var(--muted); }
+  .legend b { font-family: var(--font-mono); font-weight: 600; }
+  .legend button { font: inherit; font-size: 12px; font-weight: 500; color: var(--accent); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 1px 10px; cursor: pointer; }
+  .legend button:hover { background: var(--accent-soft); }
+
+  /* Nachrechnen */
+  .calc-intro { margin: 0; color: var(--muted); font-size: 13.5px; max-width: 64ch; }
+  .field { display: inline-flex; align-items: center; gap: 6px; }
+  .calc input, .calc-sum input {
+    font: inherit; font-family: var(--font-mono); font-weight: 600; width: 76px; padding: 5px 8px; text-align: right;
+    color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 6px;
+  }
+  .calc input[data-state="ok"], .calc-sum input[data-state="ok"] { border-color: var(--accent); }
+  .calc input[data-state="bad"], .calc-sum input[data-state="bad"] { border-color: var(--mark); }
+  .glyph { font-style: normal; font-weight: 700; width: 1em; }
+  .glyph.ok { color: var(--accent); }
+  .glyph.bad { color: var(--mark); }
+  .calc-sum { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 14px; }
+  .calc-sum input { width: 96px; }
+  .solve { font: inherit; font-size: 12.5px; font-weight: 500; color: var(--accent); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 3px 12px; cursor: pointer; }
+  .solve:hover { background: var(--accent-soft); }
+  .calc-solution { font-family: var(--font-mono); font-size: 13px; background: var(--accent-soft); color: var(--accent); border-radius: 6px; padding: 8px 10px; overflow-x: auto; }
+
+  /* Ranking */
+  .formula {
+    font-family: var(--font-mono); font-size: 13px; color: var(--muted);
+    border-left: 3px solid var(--accent); padding: 4px 0 4px 12px; margin-bottom: 16px; overflow-x: auto;
+  }
+  .list { list-style: none; margin: 0; padding: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+  .row {
+    display: grid; grid-template-columns: 32px minmax(0, 1fr) minmax(120px, 200px);
+    gap: 4px 14px; align-items: center; padding: 12px 16px;
+  }
+  .row + .row { border-top: 1px solid var(--line); }
+  .row.is-fav { background: var(--accent-soft); }
+  .rank { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+  .row:first-child .rank { color: var(--accent); font-weight: 600; }
+  .info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .name { font-weight: 600; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .score { text-align: right; }
+  .score b { font-family: var(--font-mono); font-size: 20px; font-variant-numeric: tabular-nums; }
+  .bar { height: 5px; background: var(--line); border-radius: 3px; margin-top: 6px; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.25s ease; }
+  @media (max-width: 480px) {
+    .row { grid-template-columns: 28px minmax(0, 1fr); }
+    .score { grid-column: 2; text-align: left; }
+  }
+  .more {
+    display: block; width: 100%; margin-top: 12px; padding: 10px; font: inherit; font-size: 13px; font-weight: 600;
+    color: var(--accent); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; cursor: pointer;
+  }
+  .more:hover { background: var(--accent-soft); }
+  @media (prefers-reduced-motion: reduce) { .bar i { transition: none; } }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>Vektor-Dreieck</h1>
-    <p>u und v stehen für beliebige Vektoren, auch in einem Raum mit vielen Dimensionen. Zwei Vektoren spannen immer eine Ebene auf, und genau diese Ebene siehst du hier. ⟨u, v⟩ bezeichnet das Skalarprodukt und ‖u‖ die Länge von u. Ziehe die Spitzen von u und v (oder nutze die Pfeiltasten) und gehe die Schritte nacheinander durch.</p>
+    <h1>Film-Empfehler</h1>
+    <p>Dein Filmgeschmack ist ein Vektor u, jeder Titel ein Vektor v. Wie gut ein Film oder eine Serie zu deinem Geschmack passt, kann mithilfe des Skalarprodukts u · v modelliert werden.</p>
   </header>
 
-  <div class="controls">
-    <div class="control"><span class="eyebrow">Schritt</span><div class="seg" id="stepSeg"></div></div>
-    <div class="control"><span class="eyebrow">&nbsp;</span>
-      <div style="display:flex;gap:8px"><button type="button" class="ghost" id="prev">← Zurück</button><button type="button" class="ghost" id="next">Weiter →</button></div>
+  <section aria-label="Favorit wählen">
+    <h2>1 · Dein Favorit</h2>
+    <div class="picker">
+      <div class="chips" id="chipsF"></div>
+      <div class="chips" id="chipsS"></div>
+      <div class="chips"><span class="eyebrow">Mehr</span><select class="more-select" id="moreSel" aria-label="Weiteren Titel wählen"></select></div>
     </div>
-    <div class="control"><span class="eyebrow">Beispiele</span>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button type="button" class="ghost" id="btnPyth">Rechter Winkel</button>
-        <button type="button" class="ghost" id="btnReset">Zurücksetzen</button>
-      </div>
+    <div class="fav-box">
+      <span class="fav-name" id="favName"></span>
+      <span class="meta" id="favMeta"></span>
     </div>
-  </div>
+  </section>
 
-  <div class="layout">
-    <div class="left"><figure>
-      <svg id="svg" viewBox="0 0 800 600" role="group" aria-label="Die von u und v aufgespannte Ebene"></svg>
+  <section aria-label="Deine Präferenzen">
+    <h2>2 · Deine Präferenzen</h2>
+    <div class="panel">
+      <div class="panel-top">
+        <div class="control"><span class="eyebrow">Dimensionen</span><div class="seg" id="dimSeg"></div></div>
+      </div>
+      <div class="sliders" id="sliders"></div>
+      <div class="control" style="min-width:0"><span class="eyebrow">Dein Vektor</span><div class="u-vector" id="uOut"></div></div>
+    </div>
+  </section>
+
+  <section aria-label="Nachrechnen">
+    <h2>3 · Selbst nachrechnen</h2>
+    <div class="panel">
+      <p class="calc-intro">Berechne das Skalarprodukt von u und dem Vektor des Favoriten und trage das Ergebnis ein.</p>
+      <div class="control" style="min-width:0"><span class="eyebrow" id="favVecLbl">Vektor des Favoriten</span><div class="u-vector v-vector" id="favVec"></div></div>
+      <div class="calc-sum">
+        <label for="calcSum"><b>u · v</b> =</label>
+        <span class="field"><input id="calcSum" type="number" inputmode="numeric" min="0" step="1" data-state=""><i class="glyph" id="glyphSum" aria-hidden="true"></i></span>
+        <button type="button" class="solve" id="solve" aria-expanded="false">Lösung zeigen</button>
+      </div>
+      <div class="calc-solution" id="solution" hidden></div>
+    </div>
+  </section>
+
+  <section aria-label="Abbildung">
+    <h2>4 · Passung als Abbildung</h2>
+    <div class="controls">
+      <div class="control"><span class="eyebrow">Maß</span><div class="seg" id="metricSeg"></div></div>
+      <div class="control"><span class="eyebrow">Datenbasis</span><div class="seg" id="scopeSeg"></div></div>
+      <div class="control"><span class="eyebrow">Typ</span><div class="seg" id="typeSeg"></div></div>
+    </div>
+    <figure>
+      <svg id="svgMain" viewBox="0 0 380 400" role="img"></svg>
+      <div class="legend" id="legend"></div>
       <figcaption id="cap"></figcaption>
     </figure>
-    <div class="qs" id="qs" hidden></div></div>
-    <section class="panel" aria-live="polite">
-      <div class="rows" id="rows"></div>
-      <div class="eq" id="eq" hidden></div>
-    </section>
-  </div>
+  </section>
 
-  <section class="fbar" id="fbar" hidden aria-live="polite">
-    <div class="fbar-text"><span class="eyebrow">Skalarprodukt in diesem Schritt</span><div class="fls" id="fbLines"></div><span class="fn" id="fbN"></span><span class="fnote" id="fbNote"></span></div>
-    <div id="fbBars"></div>
+  <section aria-label="Ranking">
+    <h2>5 · Ranking</h2>
+    <div class="formula" id="formula"></div>
+    <ol class="list" id="list"></ol>
+    <button type="button" class="more" id="more"></button>
   </section>
 </div>
 
 <script>
-  const S = 40, CX = 400, CY = 300;           // Pixel pro Einheit und Mittelpunkt der Zeichenfläche
-  const LIM_X = 5.5, LIM_Y = 4;                // Ziehbereich der Spitzen
-  const START = { u: [5, 1.5], v: [1.5, 3.5] };
-  const state = { u: [...START.u], v: [...START.v], step: 1 };
-  const NSTEPS = 8;
+  // Dimensionen in der Reihenfolge ihrer Relevanz (meine Einschätzung, nicht gemessen)
+  const LABELS = [
+    "Krimi & Thriller", "Drama", "Komödie", "Action", "Science-Fiction & Fantasy",
+    "Spannung", "Düstere Atmosphäre", "Gefühlsdichte", "Handlungskomplexität", "Realitätsbezug"
+  ];
+  const GENRE_COUNT = 5; // die ersten fünf Dimensionen sind Genres
+
+  // Titel;Typ (F = Film, S = Serie);zehn Werte von 0 bis 10 in der Reihenfolge von LABELS;optional: Beleg (nur Auswahl)
+  const RAW = `
+24;S;9,6,0,10,0,10,7,4,6,2;Emmy Beste Dramaserie 2006
+Game of Thrones;S;3,9,2,9,10,9,9,7,10,0;Emmy Beste Dramaserie 2015, 2016, 2018, 2019 · JustWatch Deutschland 2023: Platz 7
+The Crown;S;0,10,1,0,0,3,4,7,6,10;Emmy Beste Dramaserie 2021
+Friends;S;0,4,10,1,0,1,1,6,3,4;Emmy Beste Comedyserie 2002
+The Office;S;0,3,10,1,0,1,1,4,4,5
+Squid Game;S;9,8,2,8,0,9,9,8,5,0;Netflix: 265,2 Mio. Aufrufe (Staffel 1) · JustWatch Deutschland: Halbjahr 2025 Platz 2
+Forrest Gump;F;1,10,8,3,1,3,4,10,5,5;Oscar Bester Film 1995
+Das Schweigen der Lämmer;F;10,7,1,4,0,10,10,6,8,3;Oscar Bester Film 1992
+Oppenheimer;F;4,10,0,2,0,8,9,8,10,10;Oscar Bester Film 2024 · JustWatch Deutschland 2024: Platz 1
+Der Herr der Ringe: Die Rückkehr des Königs;F;1,7,1,9,10,8,6,9,7,0;Oscar Bester Film 2004 · Kino Deutschland: 10,4 Mio. Besucher
+Gladiator;F;3,8,1,9,0,7,8,8,5,3
+Ziemlich beste Freunde;F;1,8,9,0,0,2,2,9,3,9;César Bester Darsteller 2012 · Kino Deutschland: 9,0 Mio. Besucher
+Die Verurteilten;F;7,10,1,2,0,7,10,10,8,7
+Der Pate;F;10,9,1,8,0,8,10,9,9,7
+The Dark Knight;F;8,6,2,10,2,10,9,7,8,2
+Schindlers Liste;F;3,10,0,3,0,7,10,10,7,10
+Inception;F;7,5,2,9,10,9,7,6,10,0
+Interstellar;F;3,8,1,8,10,8,8,9,9,1
+Breaking Bad;S;10,9,3,9,1,10,10,9,9,5
+Band of Brothers;S;3,9,1,9,0,8,9,9,7,10
+Stranger Things;S;5,6,4,8,9,8,7,7,6,0
+The Wire;S;10,9,2,7,0,7,10,8,10,9
+Pulp Fiction;F;10,5,8,9,0,7,8,5,9,2
+Matrix;F;5,3,2,10,10,8,8,5,8,0
+Titanic;F;2,9,2,4,0,6,7,10,5,6
+Dark;S;8,8,1,6,10,9,10,8,10,0
+Bridgerton;S;1,8,7,1,2,3,3,9,4,2
+Sherlock;S;10,4,5,7,1,8,7,6,9,2
+Der Pate II;F;10,9,1,8,0,8,10,9,9,7
+Die zwölf Geschworenen;F;8,9,1,0,0,8,7,8,7,6
+Der Herr der Ringe: Die Gefährten;F;1,6,1,8,10,7,6,8,6,0
+Der Herr der Ringe: Die zwei Türme;F;1,6,1,9,10,8,7,8,6,0
+Fight Club;F;8,8,5,7,1,8,9,6,8,1
+Star Wars: Eine neue Hoffnung;F;1,4,4,8,10,6,4,6,5,0;Sechs Oscars 1978, nominiert als Bester Film
+Star Wars: Das Imperium schlägt zurück;F;1,5,3,8,10,7,6,7,6,0
+Zurück in die Zukunft;F;1,3,8,5,9,6,2,6,6,0
+Se7en;F;10,8,0,5,0,9,10,6,8,3
+Terminator 2;F;4,4,2,10,9,8,7,6,6,0
+Der Soldat James Ryan;F;2,9,1,10,0,8,9,8,5,8
+Die Truman Show;F;3,9,6,1,3,5,4,8,7,1
+Das Leben ist schön;F;1,10,7,2,0,5,6,10,5,6
+Léon – Der Profi;F;8,7,2,8,0,8,8,8,5,2
+Das Boot;F;6,9,0,5,0,9,10,7,6,9
+Alien;F;8,3,0,7,10,10,10,4,6,0
+Aliens;F;5,2,1,10,10,9,8,5,5,0
+Blade Runner;F;7,6,0,5,10,6,9,6,8,0
+Blade Runner 2049;F;6,8,0,5,10,6,9,7,8,0
+Mad Max: Fury Road;F;3,2,2,10,8,8,7,4,3,0
+Joker;F;8,9,1,4,0,7,10,8,6,3
+Parasite;F;8,9,6,3,0,9,8,8,8,3
+Whiplash;F;3,9,1,2,0,8,7,8,5,4
+Django Unchained;F;4,7,6,9,0,7,7,6,6,3
+Inglourious Basterds;F;6,8,6,8,0,9,8,6,7,2
+Kill Bill: Volume 1;F;5,3,5,10,0,7,7,5,4,0
+Reservoir Dogs;F;9,7,6,7,0,8,9,4,6,2
+Goodfellas;F;8,9,5,7,0,7,9,7,7,9
+Casino;F;8,8,3,6,0,7,9,6,7,8
+Scarface;F;9,7,2,8,0,7,9,6,5,3
+Heat;F;9,7,1,9,0,9,8,6,7,4
+No Country for Old Men;F;10,8,2,6,0,10,10,5,7,2
+There Will Be Blood;F;3,10,0,3,0,7,10,6,7,5
+Prisoners;F;10,8,0,4,0,10,10,8,8,2
+Shutter Island;F;9,7,0,4,0,9,10,8,9,1
+Memento;F;10,7,0,4,1,9,9,6,10,1
+The Prestige;F;7,8,1,3,2,8,8,7,10,1
+Avatar;F;1,3,2,9,10,6,3,7,4,0
+Avengers: Endgame;F;2,5,6,10,9,7,5,8,6,0
+Iron Man;F;2,3,7,8,8,5,3,4,3,0
+Spider-Man: No Way Home;F;2,5,7,9,8,6,4,7,5,0
+Guardians of the Galaxy;F;1,3,8,8,10,5,3,6,3,0
+Jurassic Park;F;5,3,3,8,8,8,5,5,4,0
+Der weiße Hai;F;9,4,1,6,0,10,8,4,3,2
+Jäger des verlorenen Schatzes;F;4,2,5,9,3,7,3,4,3,0
+E.T. – Der Außerirdische;F;1,8,3,2,8,4,2,10,2,0
+Der König der Löwen;F;1,8,5,3,5,4,4,10,3,0
+Toy Story;F;1,5,9,4,3,3,1,8,3,0
+Findet Nemo;F;1,5,8,4,2,4,2,8,3,0
+Hangover;F;2,2,10,3,0,4,3,2,4,1
+Brautalarm;F;0,4,10,1,0,2,2,5,3,3
+Superbad;F;0,3,10,1,0,2,2,4,2,3
+Die nackte Kanone;F;3,0,10,4,0,2,1,1,2,0
+Dumm und Dümmer;F;0,2,10,2,0,1,1,3,1,0
+Mrs. Doubtfire;F;0,7,10,1,0,2,2,8,3,2
+Good Will Hunting;F;1,10,6,0,0,3,5,10,5,6
+A Beautiful Mind;F;3,9,2,1,0,5,5,9,8,9
+The Imitation Game;F;5,9,1,1,0,7,6,8,8,10
+Der Pianist;F;2,10,0,3,0,7,10,10,5,10
+Braveheart;F;1,9,1,9,0,6,8,8,4,6
+Der Untergang;F;2,10,0,5,0,7,10,8,5,10
+Apocalypse Now;F;3,9,1,8,0,7,10,6,7,5
+Full Metal Jacket;F;2,8,3,7,0,6,9,5,5,6
+Dunkirk;F;4,8,0,9,0,9,8,7,6,10
+1917;F;4,8,0,9,0,10,8,7,4,9
+Barbie;F;0,5,9,1,7,2,1,7,4,0
+Dune;F;2,6,1,8,10,6,7,6,6,0
+Dune: Part Two;F;2,6,1,9,10,7,7,7,6,0
+Arrival;F;3,8,0,1,10,6,7,9,8,0
+Gravity;F;6,7,0,7,9,9,6,7,3,1
+Der Marsianer;F;3,6,8,5,10,7,3,6,6,2
+Ex Machina;F;7,7,0,2,10,8,8,6,8,0
+Her;F;1,9,3,0,8,3,5,9,6,0
+Eternal Sunshine of the Spotless Mind;F;1,9,4,1,6,4,5,10,8,0
+Lost in Translation;F;0,9,5,0,0,1,3,8,3,6
+Amélie;F;1,7,8,1,5,2,1,8,4,1
+Chihiros Reise ins Zauberland;F;1,7,3,3,10,5,3,9,6,0
+Mein Nachbar Totoro;F;0,6,5,1,10,1,1,9,2,0
+Prinzessin Mononoke;F;1,7,1,8,10,6,6,8,6,0
+Coco;F;1,7,6,3,8,4,3,10,4,0
+Wall-E;F;1,7,6,3,9,4,3,9,4,0
+Oben;F;0,8,7,3,3,3,3,10,3,0
+Soul;F;0,8,7,1,6,3,2,9,5,0
+Drive;F;8,7,1,7,0,7,9,5,3,1
+John Wick;F;7,4,2,10,0,7,7,3,3,0
+Die Bourne Identität;F;8,4,1,9,0,9,6,4,6,2
+Casino Royale;F;7,5,3,9,0,8,6,5,5,1
+Skyfall;F;7,6,3,9,0,8,6,6,5,1
+Mission: Impossible – Fallout;F;7,3,2,10,0,9,5,3,5,0
+Top Gun: Maverick;F;2,7,3,9,0,7,2,7,3,2
+Rocky;F;1,9,2,6,0,5,5,9,2,5
+Der Exorzist;F;8,5,0,3,4,9,10,5,5,2
+Hereditary;F;8,8,0,2,3,9,10,7,6,1
+Get Out;F;9,6,3,3,0,9,9,6,7,2
+Shining;F;9,5,1,2,3,9,10,5,7,1
+Psycho;F;10,5,0,2,0,10,9,4,6,3
+Vertigo;F;9,7,0,1,0,8,8,7,8,2
+Citizen Kane;F;3,10,1,0,0,4,6,7,7,4
+Casablanca;F;3,9,3,2,0,5,5,9,4,6
+Lawrence von Arabien;F;1,9,1,6,0,5,5,7,5,8
+2001: Odyssee im Weltraum;F;2,5,0,1,10,4,7,5,10,0
+Taxi Driver;F;8,9,1,3,0,7,10,6,5,7
+Zodiac;F;10,7,1,2,0,8,9,5,9,10
+La La Land;F;0,9,5,1,3,2,3,9,3,1
+Der Club der toten Dichter;F;0,10,4,0,0,2,5,10,3,5
+Better Call Saul;S;9,9,5,5,0,8,9,8,9,5
+Chernobyl;S;5,10,0,2,0,9,10,9,7,10
+Die Sopranos;S;9,9,4,6,0,8,10,8,9,6
+Succession;S;2,10,7,0,0,7,8,7,9,4
+True Detective;S;10,8,0,4,0,9,10,7,8,2
+Black Mirror;S;7,7,3,2,10,8,10,7,8,1
+Westworld;S;6,8,0,7,10,8,8,7,10,0
+The Mandalorian;S;1,5,5,8,10,6,4,6,4,0
+House of the Dragon;S;2,9,1,8,10,8,8,7,8,0
+The Last of Us;S;5,10,1,8,6,9,10,10,6,0
+Fargo;S;9,7,6,4,0,8,9,6,8,3
+Mindhunter;S;10,8,0,2,0,8,10,6,8,9
+Peaky Blinders;S;8,9,2,8,0,7,9,7,6,5
+Narcos;S;8,8,1,8,0,8,9,6,6,9
+Ozark;S;9,9,2,5,0,9,10,6,8,3
+House of Cards;S;6,9,2,1,0,7,8,5,8,3
+Homeland;S;9,8,0,6,0,9,8,6,8,5
+Lost;S;6,8,3,6,7,9,7,8,10,0
+Prison Break;S;8,6,1,8,0,9,7,6,7,1
+The Walking Dead;S;6,8,1,8,4,8,10,7,4,0
+Vikings;S;2,8,1,10,1,6,8,6,5,4
+Downton Abbey;S;0,9,4,0,0,2,3,8,5,6
+Gilmore Girls;S;0,7,8,0,0,1,1,8,3,3
+How I Met Your Mother;S;0,5,10,0,0,1,1,7,4,3
+The Big Bang Theory;S;0,3,10,0,2,1,1,5,2,2;Nielsen USA 2024: meistgebingte Serie, 265,5 Folgen pro Zuschauer
+Seinfeld;S;0,2,10,0,0,1,1,2,3,5
+Brooklyn Nine-Nine;S;3,2,10,3,0,2,1,4,3,2
+Parks and Recreation;S;0,3,10,0,0,1,1,6,3,4
+Modern Family;S;0,5,10,0,0,1,1,7,3,4
+Arrested Development;S;1,3,10,1,0,2,1,3,6,2
+Rick and Morty;S;2,4,10,6,10,5,4,5,7,0
+South Park;S;1,2,10,3,1,2,3,2,4,3
+Die Simpsons;S;0,3,10,2,0,1,1,5,3,2
+Family Guy;S;0,2,10,3,0,1,2,2,2,1
+Futurama;S;1,4,10,4,10,3,2,6,5,0
+Avatar: Der Herr der Elemente;S;1,7,6,7,8,6,4,9,6,0
+Arcane;S;3,8,2,8,8,8,8,9,7,0
+Cyberpunk: Edgerunners;S;3,8,1,9,10,8,9,10,5,0
+Attack on Titan;S;5,8,0,10,5,10,10,8,9,0
+Death Note;S;10,6,0,3,2,10,9,6,10,1
+Fullmetal Alchemist: Brotherhood;S;2,8,3,9,7,7,7,9,8,0
+One Piece;S;1,6,7,9,6,5,4,8,5,0
+Naruto;S;1,7,5,9,6,5,5,8,4,0
+Cowboy Bebop;S;4,7,5,8,9,6,6,8,5,0
+Neon Genesis Evangelion;S;3,9,2,7,9,7,9,8,9,0
+Dr. House;S;7,8,6,1,0,7,6,6,8,8
+Grey's Anatomy;S;1,10,3,1,0,5,4,9,4,5
+Scrubs;S;0,7,10,0,0,1,2,7,3,3
+Monk;S;8,4,8,1,0,5,3,5,6,2
+Dexter;S;9,8,3,4,0,8,10,6,7,2
+Hannibal;S;10,7,0,4,0,9,10,6,8,1
+Twin Peaks;S;9,8,3,1,5,7,10,5,9,0
+Akte X;S;8,6,2,4,8,8,8,5,8,1
+Star Trek: The Next Generation;S;1,6,3,3,10,5,3,6,7,0
+Battlestar Galactica;S;4,8,0,7,10,8,8,7,8,0
+The Expanse;S;5,8,1,7,10,8,7,6,9,0
+Foundation;S;2,8,0,3,10,5,5,6,9,0
+Severance;S;8,8,3,2,9,9,8,7,9,0
+Haus des Geldes;S;9,7,2,8,0,9,6,7,7,1
+Lupin;S;9,4,5,6,0,7,4,6,6,1
+Babylon Berlin;S;9,8,1,5,0,8,9,6,9,7
+Das Boot (Serie);S;5,9,0,6,0,8,9,6,7,8
+Deutschland 83;S;8,8,1,5,0,8,7,6,7,7
+Stromberg;S;0,4,9,0,0,1,2,3,3,6
+Bad Banks;S;5,9,1,1,0,7,7,5,7,5
+Fleabag;S;0,8,9,0,0,3,4,8,4,4
+Ted Lasso;S;0,7,9,1,0,1,1,9,3,2
+Schitt's Creek;S;0,4,10,0,0,1,1,8,3,2
+The Marvelous Mrs. Maisel;S;0,6,10,0,0,1,2,7,4,3
+Mad Men;S;1,10,3,0,0,3,7,7,8,8
+Boardwalk Empire;S;8,9,1,7,0,7,9,6,7,8
+Shameless;S;1,8,8,2,0,3,6,7,5,5
+This Is Us;S;0,10,3,0,0,3,4,10,6,3
+Euphoria;S;2,10,2,2,0,6,9,9,5,2
+The Bear;S;1,9,5,3,0,7,6,8,4,5
+Yellowstone;S;3,9,2,6,0,5,6,7,5,3
+Wednesday;S;6,4,6,5,8,6,6,5,5,0
+Loki;S;3,5,6,7,9,6,5,6,8,0
+WandaVision;S;3,6,6,4,8,6,5,8,7,0
+The Boys;S;4,5,7,9,6,7,8,5,6,1
+Mr. Robot;S;9,8,1,3,3,9,10,6,10,3
+Silo;S;7,8,0,3,9,8,9,6,9,0
+The Rookie;S;9,6,2,6,0,7,3,5,3,4
+Konklave;F;8,8,1,0,0,8,5,4,8,4
+Deadpool & Wolverine;F;1,3,9,9,6,6,3,4,3,0
+Das Kanu des Manitu;F;0,1,10,2,0,3,1,4,2,0
+Ein Minecraft Film;F;1,2,8,7,7,4,1,4,2,0
+`;
+  const DATA = RAW.trim().split("\n").map(line => {
+    const [title, type, values, meta] = line.split(";");
+    return { title, type, v: values.split(",").map(Number), meta: meta || "" };
+  });
+  const byTitle = Object.fromEntries(DATA.map(d => [d.title, d]));
+  const TYPE_NAME = { F: "Film", S: "Serie" };
+  const nCore = DATA.filter(d => d.meta).length;
+  const LIMIT = 20;
+
+  const state = { fav: "Star Wars: Eine neue Hoffnung", dim: 3, u: Array(LABELS.length).fill(5), scope: "core", type: "all", metric: "dot", more: false };
 
   const $ = id => document.getElementById(id);
-  const svg = $("svg");
-  const r1 = x => Math.round(x * 10) / 10;
-  const fmt = (x, d = 2) => (Math.abs(x) < 1e-9 ? 0 : x).toLocaleString("de-DE", { maximumFractionDigits: d, minimumFractionDigits: 0 }).replace("-", "−");
-  const fmtp = x => (x < -1e-9 ? `(${fmt(x)})` : fmt(x));   // negative Zahlen in Klammern
-  const sx = x => CX + x * S, sy = y => CY - y * S;
-  const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
-  const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
+  const dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
+  const norm = a => Math.sqrt(dot(a, a));
+  const vec = a => `(${a.join(", ")})ᵀ`;
+  const fmt = (x, d = 1) => x.toLocaleString("de-DE", { maximumFractionDigits: d, minimumFractionDigits: 0 });
+  const esc = t => t.replace(/"/g, "&quot;");
 
-  // Interne Schritt-Nummern; der frühere Schritt 5 (Höhe) ist in Schritt 6 aufgegangen und wird übersprungen
-  const ORDER = [1, 2, 3, 4, 6, 7, 8];
-  const DISP = { 1: 1, 2: 2, 3: 3, 4: 4, 6: 5, 7: 6, 8: 7 }, PREVS = { 4: 3, 6: 4, 7: 6, 8: 7 };
-  const STEPS = ["1 · Vektoren", "2 · Differenz", "3 · Quadrate", "4 · Halbe Quadrate", "5 · Höhe und Pythagoras", "6 · Pythagoras erneut", "7 · Rechteck"];
-  const LC = "‖v‖ cos α", LS = "‖v‖ sin α", LQ = "‖u‖ − ‖v‖ cos α";
-  const QUESTIONS = {
-    3: [
-      ["Wann ist das Quadrat über u − v größer, kleiner bzw. genau so groß wie die Quadrate über u und v zusammen? Was gilt dann für den Winkel α?",
-       "Größer: α ist stumpf (> 90°). Kleiner: α ist spitz (< 90°). Genau so groß: α = 90°, das ist der Satz des Pythagoras."]
-    ],
-    4: [
-      ["Wann ist das Skalarprodukt besonders groß, wann besonders klein, wann ist es null? Argumentiere mit den Dreiecken.",
-       "Groß, wenn das Dreieck über u − v klein ist (v liegt nahe bei u, α klein): Es wird wenig abgezogen. Klein (negativ), wenn dieses Dreieck groß ist (α nahe 180°). Null, wenn es genau so groß ist wie die beiden anderen Dreiecke zusammen (α = 90°). Bei gleichem Winkel wächst das Skalarprodukt betragsmäßig, wenn u oder v wächst."]
-    ],
-    6: [
-      ["Warum gilt: Ankathete von α (O–F) = ‖v‖ cos α und Gegenkathete von α (F–V) = ‖v‖ sin α?",
-       "Im rechtwinkligen Dreieck O–F–V ist ‖v‖ die Hypotenuse. Es gilt cos α = Ankathete / Hypotenuse und sin α = Gegenkathete / Hypotenuse. Multipliziert man mit ‖v‖, erhält man O–F = ‖v‖ cos α und F–V = ‖v‖ sin α."]
-    ],
-    8: [
-      ["Halte die Länge von v fest und drehe v um den Ursprung. Wann ist die Rechteckfläche am größten?",
-       "Wenn v in dieselbe Richtung zeigt wie u (α = 0°). Dann ist ⟨u,v⟩ = ‖u‖ · ‖v‖."],
-      ["Wann hat das Rechteck die Fläche 0?",
-       "Bei α = 90°. Dann ist ‖v‖ cos α = 0, und v steht senkrecht auf u."],
-      ["Was bedeutet ein gestricheltes Rechteck?",
-       "‖v‖ cos α ist negativ (α > 90°). Die Höhe zeigt entgegen u, und die Fläche zählt negativ. Deshalb ist dann ⟨u,v⟩ < 0."],
-      ["Fazit: Wann ist das Skalarprodukt besonders groß, wann besonders klein, wann ist es null? Argumentiere mit dem Rechteck.",
-       "Das Skalarprodukt (Rechteck) wird größer, je ähnlicher die Richtungen von u und v sind: am größten bei α = 0°, null bei α = 90° (Höhe 0), negativ bei α > 90° (gestricheltes Rechteck). Bei gleichem Winkel wächst das Skalarprodukt betragsmäßig, wenn u oder v wächst."]
-    ]
-  };
+  // ---- Favorit
+  function buildPicker() {
+    const core = DATA.filter(d => d.meta);
+    const chips = (type, id, label) => {
+      $(id).innerHTML = `<span class="eyebrow">${label}</span>` + core.filter(d => d.type === type).map(d =>
+        `<button type="button" class="chip" data-t="${esc(d.title)}">${d.title}</button>`).join("");
+    };
+    chips("F", "chipsF", "Filme");
+    chips("S", "chipsS", "Serien");
+    const rest = DATA.filter(d => !d.meta).sort((a, b) => a.title.localeCompare(b.title, "de"));
+    const opt = d => `<option value="${esc(d.title)}">${d.title}</option>`;
+    $("moreSel").innerHTML = `<option value="">Weiterer Titel …</option>` +
+      `<optgroup label="Filme">${rest.filter(d => d.type === "F").map(opt).join("")}</optgroup>` +
+      `<optgroup label="Serien">${rest.filter(d => d.type === "S").map(opt).join("")}</optgroup>`;
+    document.querySelector(".picker").addEventListener("click", e => {
+      const b = e.target.closest(".chip");
+      if (!b) return;
+      $("moreSel").value = "";
+      setFav(b.dataset.t);
+    });
+    $("moreSel").addEventListener("change", e => { if (e.target.value) setFav(e.target.value); });
+  }
+  function setFav(title) { state.fav = title; buildCalc(); render(); }
 
-  // ---- Bedienelemente
-  $("stepSeg").innerHTML = STEPS.map((l, i) => `<button type="button" data-v="${ORDER[i]}">${l}</button>`).join("");
-  $("stepSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { state.step = +b.dataset.v; render(); } });
-  $("prev").addEventListener("click", () => { state.step = ORDER[Math.max(0, ORDER.indexOf(state.step) - 1)]; render(); });
-  $("next").addEventListener("click", () => { state.step = ORDER[Math.min(ORDER.length - 1, ORDER.indexOf(state.step) + 1)]; render(); });
-  $("btnPyth").addEventListener("click", () => { state.u = [4, 0]; state.v = [0, 3]; if (state.step < 3) state.step = 3; render(); });
-  $("btnReset").addEventListener("click", () => { state.u = [...START.u]; state.v = [...START.v]; render(); });
+  // Segmented control: options = [[value, label], ...]
+  function seg(id, key, options, onChange) {
+    const el = $(id);
+    el.innerHTML = options.map(([v, l]) => `<button type="button" data-v="${v}">${l}</button>`).join("");
+    el.addEventListener("click", e => {
+      const b = e.target.closest("button");
+      if (!b) return;
+      state[key] = key === "dim" ? +b.dataset.v : b.dataset.v;
+      onChange && onChange();
+      render();
+    });
+  }
 
-  // ---- Ziehen
-  let drag = null, keepFocus = null;
-  const toWorld = e => {
-    const p = svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY;
-    const q = p.matrixTransform(svg.getScreenCTM().inverse());
-    return [(q.x - CX) / S, (CY - q.y) / S];
-  };
-  const clamp = (v, m) => Math.max(-m, Math.min(m, v));
-  function setPoint(h, w) { state[h] = [r1(clamp(w[0], LIM_X)), r1(clamp(w[1], LIM_Y))]; }
-  svg.addEventListener("pointerdown", e => {
-    const g = e.target.closest("[data-h]"); if (!g) return;
-    drag = g.dataset.h; svg.setPointerCapture(e.pointerId); e.preventDefault();
-  });
-  svg.addEventListener("pointermove", e => { if (drag) { setPoint(drag, toWorld(e)); render(); } });
-  const end = e => { drag = null; try { svg.releasePointerCapture(e.pointerId); } catch (_) {} };
-  svg.addEventListener("pointerup", end); svg.addEventListener("pointercancel", end);
-  svg.addEventListener("keydown", e => {
-    const g = e.target.closest("[data-h]"); if (!g) return;
-    const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[e.key]; if (!d) return;
-    e.preventDefault();
-    const st = e.shiftKey ? 0.1 : 0.5, h = g.dataset.h;
-    setPoint(h, [state[h][0] + d[0] * st, state[h][1] + d[1] * st]);
-    keepFocus = h; render();
+  function buildSliders() {
+    const groups = { 0: "Genres", [GENRE_COUNT]: "Weitere Dimensionen" };
+    $("sliders").innerHTML = LABELS.slice(0, state.dim).map((l, i) => `
+      ${groups[i] ? `<div class="eyebrow group">${groups[i]}</div>` : ""}
+      <div class="slider">
+        <label for="s${i}"><span>${l}</span><output id="o${i}">${state.u[i]}</output></label>
+        <input id="s${i}" type="range" min="0" max="10" value="${state.u[i]}" data-i="${i}">
+      </div>`).join("");
+  }
+  $("sliders").addEventListener("input", e => {
+    const i = +e.target.dataset.i;
+    state.u[i] = +e.target.value;
+    $("o" + i).textContent = state.u[i];
+    render();
   });
 
-  // ---- Zeichnen (alle Punkte in Weltkoordinaten)
-  function arrow(a, b, cls) {
-    const x1 = sx(a[0]), y1 = sy(a[1]), x2 = sx(b[0]), y2 = sy(b[1]);
+  // ---- Nachrechnen
+  let solutionOpen = false;
+  function buildCalc() {
+    solutionOpen = false;
+    $("calcSum").value = "";
+  }
+  function mark(input, glyph, text, correct) {
+    const empty = text === "";
+    const st = empty ? "" : (+text === correct ? "ok" : "bad");
+    input.dataset.state = st;
+    glyph.className = "glyph" + (st ? " " + st : "");
+    glyph.textContent = st === "ok" ? "✓" : st === "bad" ? "✗" : "";
+  }
+  function updateCalc(u, v, dp) {
+    mark($("calcSum"), $("glyphSum"), $("calcSum").value, dp);
+    $("solution").hidden = !solutionOpen;
+    $("solve").setAttribute("aria-expanded", String(solutionOpen));
+    $("solve").textContent = solutionOpen ? "Lösung verbergen" : "Lösung zeigen";
+    $("solution").textContent = `u · v = ${dp}`;
+  }
+  $("calcSum").addEventListener("input", () => render());
+  $("solve").addEventListener("click", () => { solutionOpen = !solutionOpen; render(); });
+
+  // ---- Abbildung
+  const ORIGIN = { x: 44, y: 350 };
+  function arrow(x1, y1, x2, y2, cls) {
     const dx = x2 - x1, dy = y2 - y1, len = Math.hypot(dx, dy);
-    if (len < 3) return "";
-    const ux = dx / len, uy = dy / len, h = Math.min(14, len * 0.7);
-    const bx = x2 - ux * h, by = y2 - uy * h, nx = -uy * h * 0.45, ny = ux * h * 0.45;
-    return `<line class="vec ${cls}" x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}"/>` +
-      `<polygon class="head ${cls}" points="${x2},${y2} ${bx + nx},${by + ny} ${bx - nx},${by - ny}"/>`;
+    if (len < 2) return "";
+    const ux = dx / len, uy = dy / len, h = Math.min(11, len);
+    const bx = x2 - ux * h, by = y2 - uy * h, nx = -uy * h * 0.42, ny = ux * h * 0.42;
+    return `<line class="${cls}" x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}"/>` +
+      `<polygon class="${cls}-head" points="${x2},${y2} ${bx + nx},${by + ny} ${bx - nx},${by - ny}"/>`;
   }
-  const pts = a => a.map(p => `${sx(p[0])},${sy(p[1])}`).join(" ");
-  const line = (a, b, cls) => `<line class="${cls}" x1="${sx(a[0])}" y1="${sy(a[1])}" x2="${sx(b[0])}" y2="${sy(b[1])}"/>`;
-  const text = (p, cls, t, dx = 0, dy = 0, anchor = "middle") => `<text class="${cls}" x="${sx(p[0]) + dx}" y="${sy(p[1]) + dy}" text-anchor="${anchor}">${t}</text>`;
 
-  // Quadrat über der Strecke A–B, nach außen (weg vom Punkt C); mode "half": nur das halbe Quadrat
-  function square(A, B, C, cls, name, mode = "full", sign = "") {
-    const dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy);
-    if (L < 0.05) return "";
-    const s = dot([-dy, dx], sub(C, A)) > 0 ? -1 : 1;
-    const nx = -dy * s, ny = dx * s;
-    const D = [B[0] + nx, B[1] + ny], E = [A[0] + nx, A[1] + ny];
-    const area = L * L;
-    let out, c, t;
-    if (mode === "full") {
-      out = `<polygon class="sq sq-${cls}" points="${pts([A, B, D, E])}"/>`;
-      c = [(A[0] + B[0] + D[0] + E[0]) / 4, (A[1] + B[1] + D[1] + E[1]) / 4];
-      t = `${name} = ${fmt(area)}`;
-    } else {
-      out = `<polygon class="sq-ghost g-${cls}" points="${pts([A, B, D, E])}"/><polygon class="sq sq-${cls}" points="${pts([A, B, D])}"/>`;
-      c = [(A[0] + B[0] + D[0]) / 3, (A[1] + B[1] + D[1]) / 3];
-      t = `${sign}½${name} = ${fmt(area / 2)}`;
+  // g: s Maßstab, vl Länge von v (bzw. 1), ul Länge von u (bzw. 1), p Projektion, cosA, big Beschriftung, top {w, p} oder null, unit true für Kosinus
+  function drawMain(g) {
+    const { x: ox, y: oy } = ORIGIN;
+    const { s, vl, ul, p, cosA, top, unit } = g;
+    const alpha = Math.acos(Math.max(-1, Math.min(1, cosA)));
+    const h = Math.sqrt(Math.max(0, ul * ul - p * p));
+    const tx = ox + p * s, ty = oy - h * s, vx = ox + vl * s;
+    const hat = unit ? "̂" : "";
+    let o = "";
+    if (unit) o += `<rect class="unit" x="${ox}" y="${oy - s}" width="${s}" height="${s}"/><path class="unit" d="M ${ox + s} ${oy} A ${s} ${s} 0 0 0 ${ox} ${oy - s}"/>`;
+    if (top) o += `<rect class="rect-top" x="${ox}" y="${oy - top.p * s}" width="${top.w * s}" height="${top.p * s}"/>`;
+    if (vl > 0) o += `<rect class="rect" x="${ox}" y="${oy - p * s}" width="${vl * s}" height="${p * s}"/>`;
+    o += `<line class="axis" x1="${ox}" y1="${oy}" x2="${ox + 320}" y2="${oy}"/><line class="axis" x1="${ox}" y1="${oy}" x2="${ox}" y2="${oy - 320}"/>`;
+    if (ul > 0 && vl > 0) {
+      o += `<line class="drop" x1="${tx}" y1="${ty}" x2="${tx}" y2="${oy}"/>`;
+      if (p > 0) o += `<path class="xfer" d="M ${tx} ${oy} A ${p * s} ${p * s} 0 0 0 ${ox} ${oy - p * s}"/>`;
+      const r = 38;
+      o += `<path class="arc" d="M ${ox + r} ${oy} A ${r} ${r} 0 0 0 ${ox + r * Math.cos(alpha)} ${oy - r * Math.sin(alpha)}"/>`;
+      o += `<text x="${ox + 56 * Math.cos(alpha / 2)}" y="${oy - 56 * Math.sin(alpha / 2) + 4}" text-anchor="middle">α</text>`;
     }
-    const val = t.slice(t.indexOf("=") + 2);
-    if (L * S > Math.max(60, t.length * 7.4)) out += text(c, `area t-${cls}`, t, 0, 4);
-    else if (L * S > 46) out += text(c, `area t-${cls}`, val, 0, 4);
-    return out;
-  }
-
-  // Zweizeilige Beschriftung (Name, Wert) neben einer Strecke; mid in Pixeln, a = Einheitsvektor in Pixeln, weg vom Dreieck
-  function nameLabel(mid, a, name, val, cls) {
-    const side = Math.abs(a[0]) > 0.5 ? (a[0] > 0 ? "start" : "end") : "middle";
-    const d = side === "middle" ? 28 : 14, X = mid[0] + a[0] * d, Y = mid[1] + a[1] * d;
-    return `<text class="nm t-${cls}" x="${X}" y="${Y - 8}" text-anchor="${side}">${name}</text>` +
-           `<text class="lbl t-${cls}" x="${X}" y="${Y + 10}" text-anchor="${side}">${val}</text>`;
-  }
-
-  function sideLabel(A, B, C, cls, txt) {   // Beschriftung in der Mitte der Seite, zum Dreieck hin versetzt
-    const dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy) || 1;
-    let nx = -dy / L, ny = dx / L;
-    if (nx * (C[0] - A[0]) + ny * (C[1] - A[1]) < 0) { nx = -nx; ny = -ny; }
-    return text([(A[0] + B[0]) / 2, (A[1] + B[1]) / 2], `lbl t-${cls}`, txt, nx * 18, -ny * 18 + 6);
-  }
-  const tipLabel = (P, cls, t) => { const L = Math.hypot(...P) || 1; return text(P, `lbl t-${cls}`, t, (P[0] / L) * 28, -(P[1] / L) * 28 + 6); };
-
-  function handle(h, p, cls) {
-    return `<g data-h="${h}" tabindex="0" role="button" aria-label="Spitze von ${h}. Mit den Pfeiltasten verschieben.">
-      <circle class="hit" cx="${sx(p[0])}" cy="${sy(p[1])}" r="26"/>
-      <circle class="ring" cx="${sx(p[0])}" cy="${sy(p[1])}" r="16" style="stroke:var(--c${cls})"/>
-      <circle class="dot" cx="${sx(p[0])}" cy="${sy(p[1])}" r="9" style="fill:var(--c${cls})"/></g>`;
-  }
-
-  const stepEq = (ttl, f, n) => `<div class="step-eq"><span class="ttl">${ttl}</span><span class="f">${f}</span><span class="n">${n}</span></div>`;
-  let shownQ = 0;
-  function buildQs(step) {
-    const q = QUESTIONS[step];
-    $("qs").hidden = !q;
-    $("qs").innerHTML = q ? `<span class="eyebrow">Zum Entdecken</span>` +
-      q.map(([a, b]) => `<details><summary>${a}</summary><p class="ans">${b}</p></details>`).join("") : "";
-  }
-
-  // Balkenbild: alle Terme der Formel. Oben die positiven, unten die abzuziehenden Terme; der Unterschied ist ⟨u,v⟩.
-  function bars(pos, neg, dp) {
-    const sum = l => l.reduce((s, t) => s + t.v, 0);
-    const P = sum(pos), N = sum(neg), M = Math.max(P, N, 1e-9), pc = x => `${(x / M) * 100}%`;
-    const seg = l => l.map(t => `<i class="b-${t.cls}" style="width:${pc(t.v)}"></i>`).join("");
-    const ext = Math.abs(P - N);
-    const extP = dp < 0 ? `<i class="b-d neg" style="width:${pc(ext)}"></i>` : "";
-    const extN = dp > 0 ? `<i class="b-d" style="width:${pc(ext)}"></i>` : "";
-    return `<div class="bars" aria-hidden="true">
-      <span class="ttl">Positive Terme: ${pos.map(t => t.lbl).join(" + ")}</span>
-      <div class="bar2">${seg(pos)}${extP}</div>
-      <span class="ttl">Abzuziehen: ${neg.map(t => t.lbl).join(" + ")}</span>
-      <div class="bar2">${seg(neg)}${extN}</div>
-      <span class="ttl">Der grüne Unterschied ist ⟨u,v⟩ = ${fmt(dp)}</span></div>`;
+    if (vl > 0) {
+      o += arrow(ox, oy, vx, oy, "vv");
+      o += `<text class="t-ink" x="${vx}" y="${oy + 48}" text-anchor="end">${unit ? "‖v̂‖ = 1" : `‖v‖ = ${fmt(vl)}`}</text>`;
+      o += `<text class="t-ink" x="${vx - 4}" y="${oy - 8}" text-anchor="end">v${hat}</text>`;
+    }
+    if (ul > 0) {
+      o += arrow(ox, oy, tx, ty, "uu");
+      const left = tx > ox + 280;
+      o += `<text class="t-acc" x="${tx + (left ? -8 : 8)}" y="${ty - 6}" text-anchor="${left ? "end" : "start"}">u${hat}</text>`;
+    }
+    if (p > 0) {
+      o += `<line class="proj" x1="${ox}" y1="${oy + 12}" x2="${tx}" y2="${oy + 12}"/>`;
+      o += `<text class="t-mark" x="${ox + (tx - ox) / 2}" y="${oy + 32}" text-anchor="middle">p = ${fmt(p, unit ? 2 : 1)}</text>`;
+      o += `<text class="t-mark" transform="translate(${ox - 8} ${oy - (p * s) / 2}) rotate(-90)" text-anchor="middle">p</text>`;
+    }
+    o += `<text class="big" x="${ox}" y="22">${g.big}</text>`;
+    $("svgMain").innerHTML = o;
+    $("svgMain").setAttribute("aria-label", `Vektoren u und v im Winkel ${fmt(alpha * 180 / Math.PI, 0)} Grad, Rechteck ${fmt(vl, 2)} mal ${fmt(p, 2)}`);
   }
 
   function render() {
-    const { u, v, step } = state, O = [0, 0], w = sub(u, v);
-    document.querySelectorAll("#stepSeg button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.v === step)));
-    $("prev").disabled = step === 1; $("next").disabled = step === NSTEPS;
-    if (shownQ !== step) { shownQ = step; buildQs(step); }
-
-    const nu = Math.hypot(...u), nv = Math.hypot(...v);
-    const a = dot(u, u), b = dot(v, v), c = dot(w, w), dp = dot(u, v);
+    const { dim, metric } = state;
+    const isDot = metric === "dot";
+    const fav = byTitle[state.fav];
+    const u = state.u.slice(0, dim), v = fav.v.slice(0, dim);
+    const nu = norm(u), nv = norm(v), dp = dot(u, v);
     const cosA = nu && nv ? dp / (nu * nv) : 0;
-    const alpha = Math.acos(Math.max(-1, Math.min(1, cosA)));
-    // Lot von der Spitze von v auf die Gerade durch u: Fußpunkt F, x = Abstand O–F (mit Vorzeichen), Höhe h
-    const uh = nu > 0.05 ? [u[0] / nu, u[1] / nu] : [1, 0];
-    const x = dot(v, uh), F = [uh[0] * x, uh[1] * x], hv = sub(v, F), h = Math.hypot(...hv);
-    const q = nu - x, sinA = nv ? h / nv : 0;
-    const nV = h > 1e-6 ? [hv[0] / h, hv[1] / h] : [-uh[1], uh[0]];   // Einheitsnormale zur Seite von v
+    const alpha = Math.acos(Math.max(-1, Math.min(1, cosA))) * 180 / Math.PI;
 
-    let g = "";
-    // Quadrate
-    if (step === 3 || step === 4) {
-      const m = step === 3 ? "full" : "half";
-      g += square(v, u, O, "w", "‖u−v‖²", m, "−") + square(O, v, u, "v", "‖v‖²", m, "+") + square(O, u, v, "u", "‖u‖²", m, "+");
-    } else if (step === 5) {
-      const R = [F, v, O];   // Dreieck O–F–V leicht einfärben
-      if (h > 0.05) g += `<polygon class="tri-h" points="${pts([O, F, v])}"/>`;
-    } else if (step === 6) {
-      g += square(v, u, O, "w", "‖u−v‖²") + square(v, F, u, "h", "(‖v‖ sin α)²") + square(F, u, v, "q", "(‖u‖ − ‖v‖ cos α)²");
-    } else if (step === 7) {
-      g += square(O, v, u, "v", "‖v‖²") + square(v, F, O, "h", "(‖v‖ sin α)²") + square(O, F, v, "x", "(‖v‖ cos α)²");
-    }
-    if (step >= 5) g += line([-uh[0] * 25, -uh[1] * 25], [uh[0] * 25, uh[1] * 25], "ext");
+    $("uOut").textContent = `u = ${vec(u)}`;
+    [["dimSeg", "dim"], ["scopeSeg", "scope"], ["typeSeg", "type"], ["metricSeg", "metric"]]
+      .forEach(([id, key]) => $(id).querySelectorAll("button").forEach(b =>
+        b.setAttribute("aria-pressed", String(b.dataset.v === String(state[key])))));
+    document.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.t === state.fav)));
 
-    // Schritt 8: Rechteck ‖u‖ × (‖v‖ cos α) auf der Seite von v
-    if (step === 8 && Math.abs(x) > 0.05 && nu > 0.05) {
-      const qq = Math.abs(x), R = [nV[0] * qq, nV[1] * qq], U2 = [u[0] + R[0], u[1] + R[1]];
-      g += `<polygon class="rect${x < 0 ? " neg" : ""}" points="${pts([O, u, U2, R])}"/>`;
-      const aF = Math.atan2(F[1], F[0]), aR = Math.atan2(R[1], R[0]);
-      let d = aR - aF; while (d > Math.PI) d -= 2 * Math.PI; while (d <= -Math.PI) d += 2 * Math.PI;
-      const rr = qq * S;
-      g += `<path class="xfer" d="M ${sx(F[0])} ${sy(F[1])} A ${rr} ${rr} 0 0 ${d > 0 ? 0 : 1} ${sx(R[0])} ${sy(R[1])}"/>`;
-      g += text([R[0] + 0.7 * (U2[0] - R[0]), R[1] + 0.7 * (U2[1] - R[1])], "area t-d", `Fläche = ⟨u,v⟩ = ${fmt(dp)}`, nV[0] * 24, -nV[1] * 24 + 4);
-    }
+    // Ranking für das gewählte Maß, die Datenbasis und den Typ
+    const best = 10 * u.reduce((s, x) => s + x, 0);
+    const rows = DATA
+      .filter(d => (state.scope === "all" || d.meta) && (state.type === "all" || d.type === state.type))
+      .map(d => {
+        const vv = d.v.slice(0, dim);
+        const dpp = dot(u, vv), nvv = norm(vv);
+        const score = isDot ? dpp : (nu && nvv ? dpp / (nu * nvv) : 0);
+        const fill = isDot ? (best ? dpp / best : 0) : score;
+        return { ...d, v: vv, dp: dpp, nv: nvv, score, fill };
+      })
+      .sort((a, b) => b.score - a.score);
 
-    // Winkelbogen
-    if (nu > 0.05 && nv > 0.05) {
-      const a1 = Math.atan2(u[1], u[0]), a2 = Math.atan2(v[1], v[0]);
-      let d = a2 - a1; while (d > Math.PI) d -= 2 * Math.PI; while (d <= -Math.PI) d += 2 * Math.PI;
-      const r = 28, P = t => [CX + r * Math.cos(t), CY - r * Math.sin(t)];
-      const p1 = P(a1), p2 = P(a2), m = a1 + d / 2;
-      g += `<path class="arc" d="M ${p1[0]} ${p1[1]} A ${r} ${r} 0 0 ${d > 0 ? 0 : 1} ${p2[0]} ${p2[1]}"/>` +
-           `<text x="${CX + 46 * Math.cos(m) - 5}" y="${CY - 46 * Math.sin(m) + 5}">α</text>`;
-    }
-    g += arrow(O, v, "v") + arrow(O, u, "u");
-    if (step >= 2) g += arrow(v, u, "w");
-    if (step < 5) {
-      g += sideLabel(O, u, v, "u", "u") + sideLabel(O, v, u, "v", "v");
-      if (step >= 2) g += sideLabel(v, u, O, "w", "u − v");
-    } else {   // ab Schritt 5 ist das Dreieck innen belegt: Beschriftung an den Spitzen bzw. außen
-      g += tipLabel(u, "u", "u") + tipLabel(v, "v", "v");
-      const m = [(u[0] + v[0]) / 2, (u[1] + v[1]) / 2], L = Math.hypot(...m) || 1;
-      if (step !== 5) g += text(m, "lbl t-w", "u − v", (m[0] / L) * 34, -(m[1] / L) * 34 + 6);
+    // Favorit und Platz 1
+    const favScore = isDot ? dp : cosA;
+    const favIdx = rows.findIndex(r => r.title === fav.title);
+    const top = nu > 0 && rows.length ? rows[0] : null;
+    const topIsFav = top && top.title === fav.title;
+    const scopeTxt = state.scope === "all" ? `aller ${rows.length} Titel` : `der Auswahl`;
+
+    $("favName").innerHTML = `${fav.title}<span class="tag">${TYPE_NAME[fav.type]}</span>`;
+    $("favMeta").textContent = fav.meta;
+    $("favMeta").hidden = !fav.meta;
+    $("favVecLbl").textContent = `Vektor des Favoriten: ${fav.title}`;
+    $("favVec").textContent = `v = ${vec(v)}`;
+    updateCalc(u, v, dp);
+
+    // Zeichnung: Skalarprodukt in Originalmaßstab, Kosinus am Einheitsquadrat
+    const topRect = top && !topIsFav
+      ? (isDot ? { w: top.nv, p: top.nv ? top.dp / top.nv : 0 } : { w: 1, p: top.score })
+      : null;
+    if (isDot) {
+      const s = 300 / (10 * Math.sqrt(dim));
+      drawMain({ s, vl: nv, ul: nu, p: nv ? dp / nv : 0, cosA, top: topRect, unit: false, big: `u · v = ${fmt(dp)}` });
+    } else {
+      drawMain({ s: 300, vl: nu && nv ? 1 : 0, ul: nu && nv ? 1 : 0, p: cosA, cosA, top: topRect, unit: true, big: `cos α = ${fmt(cosA, 2)}` });
     }
 
-    // Höhe, Fußpunkt und die Katheten ‖v‖ cos α und ‖v‖ sin α
-    if (step >= 5 && nu > 0.05) {
-      g += line(v, F, "foot");
-      if (h > 0.15) {
-        const toO = x > 0 ? [-uh[0], -uh[1]] : [uh[0], uh[1]], m = 0.28;
-        const A1 = [F[0] + toO[0] * m, F[1] + toO[1] * m], B1 = [A1[0] + nV[0] * m, A1[1] + nV[1] * m], C1 = [F[0] + nV[0] * m, F[1] + nV[1] * m];
-        g += `<polyline class="rtm" points="${pts([A1, B1, C1])}"/>`;
-        // Beschriftung der Höhe: auf der Seite ohne Quadrat (Schritt 6: rechts, Schritt 7: links)
-        const side = step === 6 || step === 5 ? 1 : -1;
-        if (step !== 8 && step !== 5) g += text([(v[0] + F[0]) / 2, (v[1] + F[1]) / 2], "lbl t-h", LS, uh[0] * side * 12, 5 + uh[1] * side * -12, side > 0 ? "start" : "end");
-      }
-      const off = [-nV[0] * 0.45, -nV[1] * 0.45];
-      const Po = off, Fo = [F[0] + off[0], F[1] + off[1]], Uo = [u[0] + off[0], u[1] + off[1]];
-      g += line(Po, Fo, "seg-p");
-      if (step === 6) {
-        g += line(Fo, Uo, "seg-q");
-        g += text(Fo, "lbl t-x", LC, -nV[0] * 20 - 8, nV[1] * 20 + 6, "end");
-        g += text(Fo, "lbl t-x", LQ, -nV[0] * 20 + 8, nV[1] * 20 + 6, "start");
-      } else if (step === 5) {
-        // Namen der drei Seiten, soweit Platz ist (die Werte stehen immer auch rechts)
-        if (Math.abs(x) * S > 55) g += nameLabel([sx((Po[0] + Fo[0]) / 2), sy((Po[1] + Fo[1]) / 2)], [-nV[0], nV[1]], "Ankathete", LC, "x");
-        if (h * S > 55 && (x < 0 || q * S > 100)) {
-          const aw = x >= 0 ? uh : [-uh[0], -uh[1]];
-          g += nameLabel([sx(v[0] * 0.3 + F[0] * 0.7), sy(v[1] * 0.3 + F[1] * 0.7)], [aw[0], -aw[1]], "Gegenkathete", LS, "h");
-        }
-        if (nv * S > 70) {
-          let n = [-v[1] / nv, v[0] / nv];
-          if (dot(n, F) > 0) n = [-n[0], -n[1]];
-          g += nameLabel([sx(v[0] / 2), sy(v[1] / 2)], [n[0], -n[1]], "Hypotenuse", "‖v‖", "v");
-        }
-      } else {
-        g += text([(Po[0] + Fo[0]) / 2, (Po[1] + Fo[1]) / 2], "lbl t-x", LC, -nV[0] * 16, nV[1] * 16 + 6);
-      }
-      g += text(F, "lbl t-h", "F", nV[0] * -12, nV[1] * 12 + 16);
+    const sc = x => isDot ? `u · v = <b>${fmt(x)}</b>` : `cos α = <b>${fmt(x, 2)}</b>`;
+    let lg = `<div><i class="sw fav"></i><span>Favorit <b>${fav.title}</b>: ${sc(favScore)}${nu && favIdx >= 0 ? ` · Rang ${favIdx + 1} von ${rows.length}` : ""}</span></div>`;
+    if (top) {
+      lg += topIsFav
+        ? `<div><span>Dein Favorit steht in der Liste an Platz 1.</span></div>`
+        : `<div><i class="sw top"></i><span>Platz 1 ${scopeTxt}: <b>${top.title}</b>: ${sc(top.score)}</span><button type="button" data-t="${esc(top.title)}">als Favorit wählen</button></div>`;
     }
-    g += handle("v", v, "v") + handle("u", u, "u");
-    svg.innerHTML = g;
-    if (keepFocus) { const el = svg.querySelector(`[data-h="${keepFocus}"]`); if (el) el.focus({ preventScroll: true }); keepFocus = null; }
+    $("legend").innerHTML = lg;
+    $("cap").textContent = isDot
+      ? "v liegt waagrecht, u steht im Winkel α dazu. Der Fußpunkt von u auf v hat den Abstand p vom Ursprung. Dreht man diese Strecke mit dem gepunkteten Bogen nach oben, entsteht das Rechteck ‖v‖ × p. Seine Fläche ist u · v. Das gestrichelte Rechteck gehört zu Platz 1 der Liste: gleiche Fläche, gleiches Skalarprodukt."
+      : "Beide Vektoren sind auf die Länge 1 gekürzt (û, v̂) und enden auf dem Viertelkreis. Die Projektion p ist dann cos α, und das Rechteck 1 × cos α ist ein Teil des Einheitsquadrats. Seine Fläche ist der Kosinus. Länge und Betrag spielen keine Rolle mehr, nur der Winkel. Gestrichelt: das Rechteck von Platz 1.";
 
-    // Zahlen (rechte Spalte)
-    let rows = `<div class="vrow cu"><b>‖u‖</b><span>${fmt(nu)}</span></div><div class="vrow cv"><b>‖v‖</b><span>${fmt(nv)}</span></div>`;
-    if (step >= 2) rows += `<div class="vrow cw"><b>‖u − v‖</b><span>${fmt(Math.sqrt(c))}</span></div>`;
-    rows += `<div class="vrow"><b>Winkel α</b><span>${nu && nv ? fmt(alpha * 180 / Math.PI, 0) + "°" : "–"}</span></div>`;
-    if (step >= 3) rows += `<div class="vrow cd"><b>⟨u, v⟩</b><span>${fmt(dp)}</span></div>`;
-    if (step >= 5) rows += `<div class="vrow cx"><b>${LC}</b><span>${fmt(x)}</span></div><div class="vrow ch"><b>${LS}</b><span>${fmt(h)}</span></div>`;
-    $("rows").innerHTML = rows;
-
-    const eq = $("eq");
-    eq.hidden = step < 3;
-    if (step === 3) {
-      eq.innerHTML =
-        stepEq("Ausmultiplizieren (bilinear und symmetrisch)", "‖u−v‖² = ⟨u−v, u−v⟩ = ⟨u,u⟩ − 2⟨u,v⟩ + ⟨v,v⟩", "") +
-        stepEq("Mit ⟨u,u⟩ = ‖u‖² und ⟨v,v⟩ = ‖v‖²", "‖u−v‖² = ‖u‖² + ‖v‖² − 2⟨u,v⟩", `${fmt(c)} = ${fmt(a)} + ${fmt(b)} − 2·${fmtp(dp)}`);
-    } else if (step === 4) {
-      eq.innerHTML =
-        stepEq("Aus Schritt 3: ‖u−v‖² = ‖u‖² + ‖v‖² − 2⟨u,v⟩. Nach ⟨u,v⟩ auflösen", "⟨u,v⟩ = (‖u‖² + ‖v‖² − ‖u−v‖²) / 2", `(${fmt(a)} + ${fmt(b)} − ${fmt(c)}) / 2 = ${fmt(dp)}`) +
-        stepEq("Mit halben Quadraten geschrieben", "⟨u,v⟩ = ½‖u‖² + ½‖v‖² − ½‖u−v‖²", `${fmt(a / 2)} + ${fmt(b / 2)} − ${fmt(c / 2)} = ${fmt(dp)}`);
-    } else if (step === 5) {
-      eq.innerHTML =
-        `<div class="step-eq"><span class="ttl">Das Dreieck O–F–V hat bei F einen rechten Winkel. Der Winkel bei O ist α.</span></div>` +
-        stepEq("Hypotenuse O–V", "‖v‖", fmt(nv)) +
-        stepEq("Ankathete von α: O–F", LC, `${fmt(nv)} · ${fmtp(cosA)} = ${fmt(x)}`) +
-        stepEq("Gegenkathete von α: F–V", LS, `${fmt(nv)} · ${fmt(sinA)} = ${fmt(h)}`);
-    } else if (step === 6) {
-      eq.innerHTML =
-        `<div class="step-eq"><span class="ttl">Das Lot von der Spitze von v auf die Gerade durch u hat den Fußpunkt F. Das Dreieck O–F–V hat bei F einen rechten Winkel, der Winkel bei O ist α.</span></div>` +
-        stepEq("Hypotenuse O–V", "‖v‖", fmt(nv)) +
-        stepEq("Ankathete von α: O–F", LC, `${fmt(nv)} · ${fmtp(cosA)} = ${fmt(x)}`) +
-        stepEq("Gegenkathete von α: F–V", LS, `${fmt(nv)} · ${fmt(sinA)} = ${fmt(h)}`) +
-        stepEq("Rechtwinkliges Dreieck F–U–V (Pythagoras)", `‖u−v‖² = (${LS})² + (${LQ})²`, `${fmt(c)} = ${fmt(h * h)} + ${fmt(q * q)}`);
-    } else if (step === 7) {
-      eq.innerHTML =
-        stepEq("Zwischenschritt: (‖u‖ − ‖v‖ cos α)² ausmultiplizieren", `‖u−v‖² = (${LS})² + ‖u‖² − 2‖u‖‖v‖ cos α + (${LC})²`, `${fmt(c)} = ${fmt(h * h)} + ${fmt(a)} − 2·${fmt(nu)}·${fmtp(x)} + ${fmt(x * x)}`) +
-        stepEq("Pythagoras im rechtwinkligen Dreieck O–F–V", `(${LC})² + (${LS})² = ‖v‖²`, `${fmt(x * x)} + ${fmt(h * h)} = ${fmt(b)}`) +
-        stepEq("Eingesetzt", "‖u−v‖² = ‖u‖² + ‖v‖² − 2‖u‖‖v‖ cos α", `${fmt(c)} = ${fmt(a)} + ${fmt(b)} − 2·${fmt(nu)}·${fmtp(x)}`);
-    } else if (step === 8) {
-      eq.innerHTML =
-        stepEq("Ergebnis", "⟨u,v⟩ = ‖u‖ · ‖v‖ · cos α", `${fmt(nu)} · ${fmt(nv)} · ${fmtp(cosA)} = ${fmt(dp)}`);
-    }
-
-    // Formelleiste unten: ab Schritt 4 die Formel des vorigen Schritts und die neue Formel; was sich ändert, ist markiert
-    const fb = $("fbar");
-    fb.hidden = step < 4;
-    if (step >= 4) {
-      const Mo = t => `<mark class="old">${t}</mark>`, Mn = t => `<mark class="new">${t}</mark>`;
-      const L0 = "⟨u,v⟩ = ", H = "½‖u‖² + ½‖v‖²", W = `½‖u−v‖²`;
-      const E = {
-        4: { prev: `${Mo("‖u−v‖² = ‖u‖² + ‖v‖² − 2⟨u,v⟩")}`, now: `${L0}${Mn(`${H} − ${W}`)}`,
-             num: `${fmt(a / 2)} + ${fmt(b / 2)} − ${fmt(c / 2)} = ${fmt(dp)}`, note: "Nach ⟨u,v⟩ aufgelöst. Jeder Term steht einzeln und halbiert da." },
-        6: { prev: `${L0}${H} − ${Mo("½‖u−v‖²")}`, now: `${L0}${H} − ½${Mn(`[(${LS})² + (${LQ})²]`)}`,
-             num: `${fmt(a / 2)} + ${fmt(b / 2)} − ½(${fmt(h * h)} + ${fmt(q * q)}) = ${fmt(dp)}`, note: "Mit dem Lot und dem Satz des Pythagoras ist ‖u−v‖² ersetzt." },
-        7: { prev: `${L0}${H} − ½[${Mo(`(${LS})² + (${LQ})²`)}]`, now: `${L0}${H} − ½[${Mn("‖u‖² + ‖v‖² − 2‖u‖‖v‖ cos α")}]`,
-             num: `${fmt(a / 2)} + ${fmt(b / 2)} − ½(${fmt(a)} + ${fmt(b)} − 2·${fmt(nu)}·${fmtp(x)}) = ${fmt(dp)}`, note: "Zweimal Pythagoras: Nach dem Ausmultiplizieren wird (‖v‖ cos α)² + (‖v‖ sin α)² = ‖v‖² eingesetzt (Dreieck O–F–V)." },
-        8: { prev: `${L0}${Mo(`${H} − ½[‖u‖² + ‖v‖² − 2‖u‖‖v‖ cos α]`)}`, mid: `${L0}${H} − ½‖u‖² − ½‖v‖² + ‖u‖‖v‖ cos α`, now: `${L0}${Mn("‖u‖ · ‖v‖ · cos α")}`,
-             num: `${fmt(nu)} · ${fmt(nv)} · ${fmtp(cosA)} = ${fmt(dp)}`, note: "½‖u‖² und ½‖v‖² heben sich weg, übrig bleibt ‖u‖ · ‖v‖ · cos α." }
-      }[step];
-      const row = (tag, html, cls) => `<div class="fl ${cls}"><span class="tg">${tag}</span><span class="fx">${html}</span></div>`;
-      $("fbLines").innerHTML = row(`Vorher · Schritt ${DISP[PREVS[step]]}`, E.prev, "prev") + (E.mid ? row("Zwischenschritt", E.mid, "mid") : "") + row(`Jetzt · Schritt ${DISP[step]}`, E.now, "now");
-      $("fbN").textContent = E.num; $("fbNote").textContent = E.note;
-      const P = [{ v: a / 2, cls: "u", lbl: "½‖u‖²" }, { v: b / 2, cls: "v", lbl: "½‖v‖²" }];
-      $("fbBars").innerHTML =
-        step <= 5 ? bars(P, [{ v: c / 2, cls: "w", lbl: "½‖u−v‖²" }], dp)
-        : step === 6 ? bars(P, [{ v: h * h / 2, cls: "h", lbl: `½(${LS})²` }, { v: q * q / 2, cls: "q", lbl: `½(${LQ})²` }], dp)
-        : "";
-    }
-
-    $("cap").textContent = [
-      "Beide Vektoren beginnen im selben Punkt. Ziehe die farbigen Punkte.",
-      "Der Vektor u − v verläuft von der Spitze von v zur Spitze von u. Die drei Pfeile bilden ein Dreieck.",
-      "Über jeder Seite des Dreiecks steht ein Quadrat. Seine Fläche ist das Längenquadrat der Seite.",
-      "Die halben Quadrate (Dreiecke) haben die halbe Fläche. Gestrichelt: das volle Quadrat. ⟨u,v⟩ ist die Summe der beiden ersten Anteile minus den dritten.",
-      "Das Lot von der Spitze von v auf die Gerade durch u hat den Fußpunkt F. Im rechtwinkligen Dreieck O–F–V ist ‖v‖ die Hypotenuse, die Ankathete von α ist ‖v‖ cos α und die Gegenkathete ‖v‖ sin α.",
-      "Das Lot von der Spitze von v hat den Fußpunkt F. Im rechtwinkligen Dreieck O–F–V ist die Ankathete ‖v‖ cos α und die Gegenkathete ‖v‖ sin α. Das Dreieck F–U–V ist rechtwinklig: Das Quadrat über u − v ist so groß wie die beiden Quadrate über den Katheten zusammen.",
-      "Im rechtwinkligen Dreieck O–F–V sind (‖v‖ cos α)² und (‖v‖ sin α)² zusammen so groß wie das Quadrat über v.",
-      "Das Rechteck hat die Breite ‖u‖ und die Höhe ‖v‖ cos α. Der gepunktete Bogen dreht die Strecke ‖v‖ cos α nach oben. Seine Fläche ist ⟨u,v⟩."
-    ][step - 1];
+    // Liste
+    $("formula").textContent = isDot ? "u · v" : "u · v / (‖u‖ · ‖v‖)";
+    const shown = state.more ? rows : rows.slice(0, LIMIT);
+    $("more").hidden = rows.length <= LIMIT;
+    $("more").textContent = state.more ? "Weniger anzeigen" : `Alle ${rows.length} anzeigen`;
+    $("list").innerHTML = shown.map((r, i) => `
+      <li class="row${r.title === fav.title ? " is-fav" : ""}">
+        <span class="rank">${i + 1}</span>
+        <div class="info">
+          <span class="name">${r.title}<span class="tag">${TYPE_NAME[r.type]}</span></span>
+          ${r.meta ? `<span class="meta">${r.meta}</span>` : ""}
+          <span class="v">v = ${vec(r.v)}</span>
+        </div>
+        <div class="score"><b>${isDot ? r.score : r.score.toFixed(3)}</b>
+          <div class="bar"><i style="width:${Math.max(0, Math.min(1, r.fill)) * 100}%"></i></div></div>
+      </li>`).join("");
   }
-  const fit = () => svg.setAttribute("viewBox", window.innerWidth < 600 ? "100 50 600 500" : "0 0 800 600");
-  window.addEventListener("resize", fit); fit();
+
+  $("legend").addEventListener("click", e => {
+    const b = e.target.closest("button[data-t]");
+    if (b) { $("moreSel").value = ""; setFav(b.dataset.t); }
+  });
+  seg("dimSeg", "dim", [3, 4, 5, 6, 7, 8, 9, 10].map(n => [n, n]), () => { buildSliders(); buildCalc(); });
+  seg("scopeSeg", "scope", [["core", `Auswahl (${nCore})`], ["all", `Alle (${DATA.length})`]]);
+  seg("typeSeg", "type", [["all", "Alle"], ["F", "Filme"], ["S", "Serien"]]);
+  seg("metricSeg", "metric", [["dot", "Skalarprodukt"], ["cos", "Kosinus"]]);
+  $("more").addEventListener("click", () => { state.more = !state.more; render(); });
+  buildPicker();
+  buildSliders();
+  buildCalc();
   render();
 </script>
 
