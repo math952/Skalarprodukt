@@ -216,24 +216,24 @@
   const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
   const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
 
-  const STEPS = ["1 · Produkt", "2 · Differenz", "3 · Orthogonalität & Winkel", "4 · Projektion", "5 · Flächeninhalt"];
+  const STEPS = ["1 · Produktvorstellung", "2 · Differenz", "3 · Orthogonalitäts- & Winkelvorstellung", "4 · Projektionsvorstellung", "5 · Flächeninhaltsvorstellung"];
   const LC = "‖v‖ cos α", LS = "‖v‖ sin α", LQ = "‖u‖ − ‖v‖ cos α";
   const QUESTIONS = {
     3: [
       ["Wann ist das Skalarprodukt besonders groß, wann besonders klein, wann ist es null? Argumentiere mit den Dreiecken.",
-       "Groß: Das Dreieck über u − v ist klein, v liegt nahe bei u, der Winkel α ist klein (Winkelvorstellung). Null: Das Dreieck über u − v ist genau so groß wie die beiden anderen zusammen. Das ist der Satz des Pythagoras, also ist α = 90° (Orthogonalitätsvorstellung). Negativ: Das Dreieck über u − v ist größer als die beiden anderen zusammen, α ist stumpf. Bei gleichem Winkel wächst das Skalarprodukt betragsmäßig, wenn u oder v wächst. Die Formel entsteht durch Ausmultiplizieren (Bilinearität, Produktvorstellung)."]
+       "Groß: Das Dreieck über u − v ist klein, v liegt nahe bei u, der Winkel α ist klein (Winkelvorstellung). Null: Das Dreieck über u − v ist genau so groß wie die beiden anderen zusammen. Das ist der Satz des Pythagoras, also ist α = 90° (Orthogonalitätsvorstellung). Negativ: Das Dreieck über u − v ist größer als die beiden anderen zusammen, α ist stumpf. Bei gleichem Winkel wächst das Skalarprodukt betragsmäßig, wenn u oder v wächst."]
     ],
     4: [
       ["Warum gilt v = v⊥ + v∥?",
-       "Fällt man von der Spitze von v das Lot auf die Gerade durch u, entsteht der Fußpunkt F. Der Weg von O nach F ist parallel zu u (v∥), der Weg von F zur Spitze von v steht senkrecht dazu (v⊥). Beide Wege hintereinander führen von O zur Spitze von v (Projektionsvorstellung)."],
+       "Fällt man von der Spitze von v das Lot auf die Gerade durch u, entsteht der Fußpunkt F. Der Weg von O nach F ist parallel zu u (v∥), der Weg von F zur Spitze von v steht senkrecht dazu (v⊥). Beide Wege hintereinander führen von O zur Spitze von v."],
       ["Ziehe v auf der gestrichelten Senkrechten. Was bleibt gleich, was ändert sich? Warum? Was folgt daraus für ⟨u,v⟩?",
-       "v∥ bleibt gleich, v⊥ ändert sich, und ⟨u,v⟩ bleibt gleich. Die Bilinearität (Produktvorstellung) teilt ⟨u,v⟩ in ⟨u,v∥⟩ + ⟨u,v⊥⟩ auf. Der zweite Summand ist 0, weil v⊥ senkrecht auf u steht (Orthogonalitätsvorstellung, Schritt 3). Es zählt also nur der zu u parallele Anteil (Projektionsvorstellung)."]
+       "v∥ bleibt gleich, v⊥ ändert sich, und ⟨u,v⟩ bleibt gleich. Wegen der Bilinearität gilt ⟨u,v⟩ = ⟨u,v∥⟩ + ⟨u,v⊥⟩. Der zweite Summand ist 0, weil v⊥ senkrecht auf u steht (Orthogonalitätsvorstellung). Es zählt also nur der zu u parallele Anteil (Projektionsvorstellung)."]
     ],
     5: [
       ["Warum hat der parallele Anteil v∥ die Länge ‖v‖ cos α?",
        "Das Dreieck O–F–V hat bei F einen rechten Winkel. ‖v‖ ist die Hypotenuse und v∥ die Ankathete von α. Wegen cos α = Ankathete / Hypotenuse ist ‖v∥‖ = ‖v‖ cos α. Bei α > 90° liegt F auf der anderen Seite von O, die Länge zählt dann negativ."],
       ["Wann ist das Skalarprodukt besonders groß, wann besonders klein, wann ist es null? Argumentiere mit dem Rechteck.",
-       "Das Rechteck hat die Seiten ‖u‖ und ‖v∥‖ (Flächeninhaltsvorstellung: v∥ wird hochgeklappt). Es wird am größten bei α = 0°, wenn die Richtungen von u und v übereinstimmen (Winkelvorstellung). Null: Bei α = 90° ist v∥ = 0, das Rechteck hat die Breite 0 (Orthogonalitätsvorstellung). Negativ: Bei α > 90° ist cos α negativ, das Rechteck ist gestrichelt und seine Fläche zählt negativ. Bei gleichem Winkel wächst das Skalarprodukt betragsmäßig, wenn u oder v wächst (Produktvorstellung)."]
+       "Das Rechteck hat die Seiten ‖u‖ und ‖v∥‖ (Flächeninhaltsvorstellung: v∥ wird hochgeklappt). Es wird am größten bei α = 0°, wenn die Richtungen von u und v übereinstimmen (Winkelvorstellung). Null: Bei α = 90° ist v∥ = 0, das Rechteck hat die Breite 0 (Orthogonalitätsvorstellung). Negativ: Bei α > 90° ist cos α negativ, das Rechteck ist gestrichelt und seine Fläche zählt negativ. Bei gleichem Winkel wächst das Skalarprodukt betragsmäßig, wenn u oder v wächst."]
     ]
   };
 
