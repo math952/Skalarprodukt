@@ -487,7 +487,7 @@
       const E = {
         1: { title: "Ausgangspunkt", rows: [["Wir setzen voraus", "Für u = (u₁,…,uₙ)ᵀ und v = (v₁,…,vₙ)ᵀ ∈ ℝⁿ ist ⟨u,v⟩ = Σ uᵢvᵢ eine positiv definite Bilinearform.", "now"]], num: "" },
         3: { title: "Rechnung", rows: [
-               ["Es gilt", "‖u−v‖² = ⟨u−v, u−v⟩ = <u,u>-<u,v>-<v,u>+<v,v> = ‖u‖² + ‖v‖² − 2⟨u,v⟩", "prev"],
+               ["Es gilt", "‖u−v‖² = ⟨u−v, u−v⟩ = ⟨u,u⟩-⟨u,v⟩-⟨v,u⟩+⟨v,v⟩ = ‖u‖² + ‖v‖² − 2⟨u,v⟩", "prev"],
                ["Also", `${L0}${Mn("½‖u‖² + ½‖v‖² − ½‖u−v‖²")}`, "now"]],
              num: `${fmt(a / 2)} + ${fmt(b / 2)} − ${fmt(c / 2)} = ${fmt(dp)}` },
         4: { title: "Rechnung", rows: [
