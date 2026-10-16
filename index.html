@@ -101,7 +101,7 @@
   .fls { display: flex; flex-direction: column; gap: 6px; }
   .fl { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 2px 12px; align-items: baseline; }
   @media (max-width: 520px) { .fl { grid-template-columns: minmax(0, 1fr); } }
-  .fl .tg { font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  .fl .tg { font-family: var(--font-body); font-size: 11px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--muted); }
   .fl .fx { font-size: 14.5px; overflow-wrap: anywhere; }
   .fl.prev .fx { color: var(--muted); }
   .fl.mid .fx { color: var(--muted); }
@@ -146,8 +146,9 @@
   svg .tri-v, svg .sq-v { fill: var(--cv); stroke: var(--cv); }
   svg .tri-w, svg .sq-w { fill: var(--cw); stroke: var(--cw); }
   svg .sq-ghost.g-h { stroke: var(--cp); } svg .sq-ghost.g-q, svg .sq-ghost.g-x { stroke: var(--cq); }
-  svg .sq-ghost.g-u { stroke: var(--cu); } svg .sq-ghost.g-v { stroke: var(--cv); } svg .sq-ghost.g-w { stroke: var(--cw); }
+  svg .sq-ghost.g-d { stroke: var(--cd); stroke-width: 2; } svg .sq-ghost.g-u { stroke: var(--cu); } svg .sq-ghost.g-v { stroke: var(--cv); } svg .sq-ghost.g-w { stroke: var(--cw); }
   svg .vec { stroke-width: 3.5; stroke-linecap: round; }
+  svg .vec.x { stroke: var(--cq); } svg .head.x { fill: var(--cq); } svg .vec.p { stroke: var(--cp); } svg .head.p { fill: var(--cp); }
   svg .vec.u { stroke: var(--cu); } svg .vec.v { stroke: var(--cv); } svg .vec.w { stroke: var(--cw); }
   svg .head.u { fill: var(--cu); } svg .head.v { fill: var(--cv); } svg .head.w { fill: var(--cw); }
   svg .t-u { fill: var(--cu); } svg .t-v { fill: var(--cv); } svg .t-w { fill: var(--cw); }
@@ -165,7 +166,7 @@
 <div class="wrap">
   <header>
     <h1>Vektor-Dreieck</h1>
-    <p>u und v stehen für beliebige Vektoren, auch in einem Raum mit vielen Dimensionen. Zwei Vektoren spannen immer eine Ebene auf, und genau diese Ebene siehst du hier. ⟨u, v⟩ bezeichnet das Skalarprodukt und ‖u‖ die Länge von u. Ziehe die Spitzen von u und v (oder nutze die Pfeiltasten) und gehe die Schritte nacheinander durch.</p>
+    <p>u und v stehen für beliebige Vektoren, auch in einem Raum mit vielen Dimensionen. Zwei Vektoren spannen immer eine Ebene auf, und genau diese Ebene siehst du hier. ⟨u, v⟩ bezeichnet das Skalarprodukt und ‖u‖ = √⟨u,u⟩ die Länge von u. Ziehe die Spitzen von u und v (oder nutze die Pfeiltasten) und gehe die Schritte nacheinander durch.</p>
   </header>
 
   <div class="controls">
@@ -194,7 +195,7 @@
   </div>
 
   <section class="fbar" id="fbar" hidden aria-live="polite">
-    <div class="fbar-text"><span class="eyebrow">Skalarprodukt in diesem Schritt</span><div class="fls" id="fbLines"></div><span class="fn" id="fbN"></span><span class="fnote" id="fbNote"></span></div>
+    <div class="fbar-text"><span class="eyebrow" id="fbTitle">Begleitrechnung</span><div class="fls" id="fbLines"></div><span class="fn" id="fbN"></span><span class="fnote" id="fbNote"></span></div>
     <div id="fbBars"></div>
   </section>
 </div>
@@ -204,7 +205,7 @@
   const LIM_X = 5.5, LIM_Y = 4;                // Ziehbereich der Spitzen
   const START = { u: [5, 1.5], v: [1.5, 3.5] };
   const state = { u: [...START.u], v: [...START.v], step: 1 };
-  const NSTEPS = 8;
+  const NSTEPS = 5;
 
   const $ = id => document.getElementById(id);
   const svg = $("svg");
@@ -215,41 +216,32 @@
   const sub = (a, b) => [a[0] - b[0], a[1] - b[1]];
   const dot = (a, b) => a[0] * b[0] + a[1] * b[1];
 
-  // Interne Schritt-Nummern; der frühere Schritt 5 (Höhe) ist in Schritt 6 aufgegangen und wird übersprungen
-  const ORDER = [1, 2, 3, 4, 6, 7, 8];
-  const DISP = { 1: 1, 2: 2, 3: 3, 4: 4, 6: 5, 7: 6, 8: 7 }, PREVS = { 4: 3, 6: 4, 7: 6, 8: 7 };
-  const STEPS = ["1 · Vektoren", "2 · Differenz", "3 · Quadrate", "4 · Halbe Quadrate", "5 · Höhe und Pythagoras", "6 · Pythagoras erneut", "7 · Rechteck"];
+  const STEPS = ["1 · Produkt", "2 · Differenz", "3 · Orthogonalität & Winkel", "4 · Projektion", "5 · Flächeninhalt"];
   const LC = "‖v‖ cos α", LS = "‖v‖ sin α", LQ = "‖u‖ − ‖v‖ cos α";
   const QUESTIONS = {
     3: [
-      ["Wann ist das Quadrat über u − v größer, kleiner bzw. genau so groß wie die Quadrate über u und v zusammen? Was gilt dann für den Winkel α?",
-       "Größer: α ist stumpf (> 90°). Kleiner: α ist spitz (< 90°). Genau so groß: α = 90°, das ist der Satz des Pythagoras."]
+      ["Wann ist das Skalarprodukt besonders groß, wann besonders klein, wann ist es null? Argumentiere mit den Dreiecken.",
+       "Groß: Das Dreieck über u − v ist klein, v liegt nahe bei u, der Winkel α ist klein (Winkelvorstellung). Null: Das Dreieck über u − v ist genau so groß wie die beiden anderen zusammen. Das ist der Satz des Pythagoras, also ist α = 90° (Orthogonalitätsvorstellung). Negativ: Das Dreieck über u − v ist größer als die beiden anderen zusammen, α ist stumpf. Bei gleichem Winkel wächst das Skalarprodukt betragsmäßig, wenn u oder v wächst. Die Formel entsteht durch Ausmultiplizieren (Bilinearität, Produktvorstellung)."]
     ],
     4: [
-      ["Wann ist das Skalarprodukt besonders groß, wann besonders klein, wann ist es null? Argumentiere mit den Dreiecken.",
-       "Groß, wenn das Dreieck über u − v klein ist (v liegt nahe bei u, α klein): Es wird wenig abgezogen. Klein (negativ), wenn dieses Dreieck groß ist (α nahe 180°). Null, wenn es genau so groß ist wie die beiden anderen Dreiecke zusammen (α = 90°). Bei gleichem Winkel wächst das Skalarprodukt betragsmäßig, wenn u oder v wächst."]
+      ["Warum gilt v = v⊥ + v∥?",
+       "Fällt man von der Spitze von v das Lot auf die Gerade durch u, entsteht der Fußpunkt F. Der Weg von O nach F ist parallel zu u (v∥), der Weg von F zur Spitze von v steht senkrecht dazu (v⊥). Beide Wege hintereinander führen von O zur Spitze von v (Projektionsvorstellung)."],
+      ["Ziehe v auf der gestrichelten Senkrechten. Was bleibt gleich, was ändert sich? Warum? Was folgt daraus für ⟨u,v⟩?",
+       "v∥ bleibt gleich, v⊥ ändert sich, und ⟨u,v⟩ bleibt gleich. Die Bilinearität (Produktvorstellung) teilt ⟨u,v⟩ in ⟨u,v∥⟩ + ⟨u,v⊥⟩ auf. Der zweite Summand ist 0, weil v⊥ senkrecht auf u steht (Orthogonalitätsvorstellung, Schritt 3). Es zählt also nur der zu u parallele Anteil (Projektionsvorstellung)."]
     ],
-    6: [
-      ["Warum gilt: Ankathete von α (O–F) = ‖v‖ cos α und Gegenkathete von α (F–V) = ‖v‖ sin α?",
-       "Im rechtwinkligen Dreieck O–F–V ist ‖v‖ die Hypotenuse. Es gilt cos α = Ankathete / Hypotenuse und sin α = Gegenkathete / Hypotenuse. Multipliziert man mit ‖v‖, erhält man O–F = ‖v‖ cos α und F–V = ‖v‖ sin α."]
-    ],
-    8: [
-      ["Halte die Länge von v fest und drehe v um den Ursprung. Wann ist die Rechteckfläche am größten?",
-       "Wenn v in dieselbe Richtung zeigt wie u (α = 0°). Dann ist ⟨u,v⟩ = ‖u‖ · ‖v‖."],
-      ["Wann hat das Rechteck die Fläche 0?",
-       "Bei α = 90°. Dann ist ‖v‖ cos α = 0, und v steht senkrecht auf u."],
-      ["Was bedeutet ein gestricheltes Rechteck?",
-       "‖v‖ cos α ist negativ (α > 90°). Die Höhe zeigt entgegen u, und die Fläche zählt negativ. Deshalb ist dann ⟨u,v⟩ < 0."],
-      ["Fazit: Wann ist das Skalarprodukt besonders groß, wann besonders klein, wann ist es null? Argumentiere mit dem Rechteck.",
-       "Das Skalarprodukt (Rechteck) wird größer, je ähnlicher die Richtungen von u und v sind: am größten bei α = 0°, null bei α = 90° (Höhe 0), negativ bei α > 90° (gestricheltes Rechteck). Bei gleichem Winkel wächst das Skalarprodukt betragsmäßig, wenn u oder v wächst."]
+    5: [
+      ["Warum hat der parallele Anteil v∥ die Länge ‖v‖ cos α?",
+       "Das Dreieck O–F–V hat bei F einen rechten Winkel. ‖v‖ ist die Hypotenuse und v∥ die Ankathete von α. Wegen cos α = Ankathete / Hypotenuse ist ‖v∥‖ = ‖v‖ cos α. Bei α > 90° liegt F auf der anderen Seite von O, die Länge zählt dann negativ."],
+      ["Wann ist das Skalarprodukt besonders groß, wann besonders klein, wann ist es null? Argumentiere mit dem Rechteck.",
+       "Das Rechteck hat die Seiten ‖u‖ und ‖v∥‖ (Flächeninhaltsvorstellung: v∥ wird hochgeklappt). Es wird am größten bei α = 0°, wenn die Richtungen von u und v übereinstimmen (Winkelvorstellung). Null: Bei α = 90° ist v∥ = 0, das Rechteck hat die Breite 0 (Orthogonalitätsvorstellung). Negativ: Bei α > 90° ist cos α negativ, das Rechteck ist gestrichelt und seine Fläche zählt negativ. Bei gleichem Winkel wächst das Skalarprodukt betragsmäßig, wenn u oder v wächst (Produktvorstellung)."]
     ]
   };
 
   // ---- Bedienelemente
-  $("stepSeg").innerHTML = STEPS.map((l, i) => `<button type="button" data-v="${ORDER[i]}">${l}</button>`).join("");
+  $("stepSeg").innerHTML = STEPS.map((l, i) => `<button type="button" data-v="${i + 1}">${l}</button>`).join("");
   $("stepSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { state.step = +b.dataset.v; render(); } });
-  $("prev").addEventListener("click", () => { state.step = ORDER[Math.max(0, ORDER.indexOf(state.step) - 1)]; render(); });
-  $("next").addEventListener("click", () => { state.step = ORDER[Math.min(ORDER.length - 1, ORDER.indexOf(state.step) + 1)]; render(); });
+  $("prev").addEventListener("click", () => { state.step = Math.max(1, state.step - 1); render(); });
+  $("next").addEventListener("click", () => { state.step = Math.min(NSTEPS, state.step + 1); render(); });
   $("btnPyth").addEventListener("click", () => { state.u = [4, 0]; state.v = [0, 3]; if (state.step < 3) state.step = 3; render(); });
   $("btnReset").addEventListener("click", () => { state.u = [...START.u]; state.v = [...START.v]; render(); });
 
@@ -262,19 +254,41 @@
   };
   const clamp = (v, m) => Math.max(-m, Math.min(m, v));
   function setPoint(h, w) { state[h] = [r1(clamp(w[0], LIM_X)), r1(clamp(w[1], LIM_Y))]; }
+  // Schritt 4: v lässt sich nur auf der Senkrechten (Projektionslinie) durch seinen Fußpunkt F verschieben
+  let lock = null;
+  function makeLock() {
+    const u = state.u, v = state.v, nu = Math.hypot(...u), uh = nu > 0.05 ? [u[0] / nu, u[1] / nu] : [1, 0];
+    const x = dot(v, uh), F0 = [uh[0] * x, uh[1] * x], hv = sub(v, F0), h = Math.hypot(...hv);
+    return { F0, n0: h > 1e-6 ? [hv[0] / h, hv[1] / h] : [-uh[1], uh[0]] };
+  }
+  function setVOnLine(w) {
+    const { F0, n0 } = lock;
+    let t = (w[0] - F0[0]) * n0[0] + (w[1] - F0[1]) * n0[1], lo = -1e9, hi = 1e9;
+    [[0, LIM_X], [1, LIM_Y]].forEach(([i, L]) => {
+      if (Math.abs(n0[i]) > 1e-9) { const p = (-L - F0[i]) / n0[i], q = (L - F0[i]) / n0[i]; lo = Math.max(lo, Math.min(p, q)); hi = Math.min(hi, Math.max(p, q)); }
+    });
+    t = lo > hi ? 0 : Math.max(lo, Math.min(hi, t));
+    t = Math.round(t * 20) / 20;
+    state.v = [F0[0] + n0[0] * t, F0[1] + n0[1] * t];
+  }
   svg.addEventListener("pointerdown", e => {
     const g = e.target.closest("[data-h]"); if (!g) return;
-    drag = g.dataset.h; svg.setPointerCapture(e.pointerId); e.preventDefault();
+    drag = g.dataset.h; lock = drag === "v" && state.step === 4 ? makeLock() : null;
+    svg.setPointerCapture(e.pointerId); e.preventDefault();
   });
-  svg.addEventListener("pointermove", e => { if (drag) { setPoint(drag, toWorld(e)); render(); } });
-  const end = e => { drag = null; try { svg.releasePointerCapture(e.pointerId); } catch (_) {} };
+  svg.addEventListener("pointermove", e => { if (drag) { if (lock) setVOnLine(toWorld(e)); else setPoint(drag, toWorld(e)); render(); } });
+  const end = e => { drag = null; lock = null; try { svg.releasePointerCapture(e.pointerId); } catch (_) {} };
   svg.addEventListener("pointerup", end); svg.addEventListener("pointercancel", end);
   svg.addEventListener("keydown", e => {
     const g = e.target.closest("[data-h]"); if (!g) return;
     const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[e.key]; if (!d) return;
     e.preventDefault();
     const st = e.shiftKey ? 0.1 : 0.5, h = g.dataset.h;
-    setPoint(h, [state[h][0] + d[0] * st, state[h][1] + d[1] * st]);
+    if (h === "v" && state.step === 4) {
+      lock = makeLock();
+      const k = (d[0] * lock.n0[0] + d[1] * lock.n0[1]) * st;
+      setVOnLine([state.v[0] + lock.n0[0] * k, state.v[1] + lock.n0[1] * k]); lock = null;
+    } else setPoint(h, [state[h][0] + d[0] * st, state[h][1] + d[1] * st]);
     keepFocus = h; render();
   });
 
@@ -349,7 +363,7 @@
   }
 
   // Balkenbild: alle Terme der Formel. Oben die positiven, unten die abzuziehenden Terme; der Unterschied ist ⟨u,v⟩.
-  function bars(pos, neg, dp) {
+  function bars(pos, neg, dp, txt) {
     const sum = l => l.reduce((s, t) => s + t.v, 0);
     const P = sum(pos), N = sum(neg), M = Math.max(P, N, 1e-9), pc = x => `${(x / M) * 100}%`;
     const seg = l => l.map(t => `<i class="b-${t.cls}" style="width:${pc(t.v)}"></i>`).join("");
@@ -361,7 +375,7 @@
       <div class="bar2">${seg(pos)}${extP}</div>
       <span class="ttl">Abzuziehen: ${neg.map(t => t.lbl).join(" + ")}</span>
       <div class="bar2">${seg(neg)}${extN}</div>
-      <span class="ttl">Der grüne Unterschied ist ⟨u,v⟩ = ${fmt(dp)}</span></div>`;
+      <span class="ttl">${txt || `Der grüne Unterschied ist ⟨u,v⟩ = ${fmt(dp)}`}</span></div>`;
   }
 
   function render() {
@@ -381,31 +395,27 @@
     const nV = h > 1e-6 ? [hv[0] / h, hv[1] / h] : [-uh[1], uh[0]];   // Einheitsnormale zur Seite von v
 
     let g = "";
-    // Quadrate
-    if (step === 3 || step === 4) {
-      const m = step === 3 ? "full" : "half";
-      g += square(v, u, O, "w", "‖u−v‖²", m, "−") + square(O, v, u, "v", "‖v‖²", m, "+") + square(O, u, v, "u", "‖u‖²", m, "+");
-    } else if (step === 5) {
-      const R = [F, v, O];   // Dreieck O–F–V leicht einfärben
-      if (h > 0.05) g += `<polygon class="tri-h" points="${pts([O, F, v])}"/>`;
-    } else if (step === 6) {
-      g += square(v, u, O, "w", "‖u−v‖²") + square(v, F, u, "h", "(‖v‖ sin α)²") + square(F, u, v, "q", "(‖u‖ − ‖v‖ cos α)²");
-    } else if (step === 7) {
-      g += square(O, v, u, "v", "‖v‖²") + square(v, F, O, "h", "(‖v‖ sin α)²") + square(O, F, v, "x", "(‖v‖ cos α)²");
+    if (step === 3) {
+      g += square(v, u, O, "w", "‖u−v‖²", "half", "−") + square(O, v, u, "v", "‖v‖²", "half", "+") + square(O, u, v, "u", "‖u‖²", "half", "+");
     }
-    if (step >= 5) g += line([-uh[0] * 25, -uh[1] * 25], [uh[0] * 25, uh[1] * 25], "ext");
+    if (step >= 4) g += line([-uh[0] * 25, -uh[1] * 25], [uh[0] * 25, uh[1] * 25], "ext");
+    if (step === 4 && h > 0.05 && nu > 0.05) g += `<polygon class="tri-h" points="${pts([O, F, v, hv])}"/>`;
 
-    // Schritt 8: Rechteck ‖u‖ × (‖v‖ cos α) auf der Seite von v
-    if (step === 8 && Math.abs(x) > 0.05 && nu > 0.05) {
+    // Schritt 5: Rechteck ‖u‖ × (‖v‖ cos α) auf der Seite von v
+    if (step === 5 && Math.abs(x) > 0.05 && nu > 0.05) {
       const qq = Math.abs(x), R = [nV[0] * qq, nV[1] * qq], U2 = [u[0] + R[0], u[1] + R[1]];
       g += `<polygon class="rect${x < 0 ? " neg" : ""}" points="${pts([O, u, U2, R])}"/>`;
       const aF = Math.atan2(F[1], F[0]), aR = Math.atan2(R[1], R[0]);
       let d = aR - aF; while (d > Math.PI) d -= 2 * Math.PI; while (d <= -Math.PI) d += 2 * Math.PI;
       const rr = qq * S;
       g += `<path class="xfer" d="M ${sx(F[0])} ${sy(F[1])} A ${rr} ${rr} 0 0 ${d > 0 ? 0 : 1} ${sx(R[0])} ${sy(R[1])}"/>`;
-      g += text([R[0] + 0.7 * (U2[0] - R[0]), R[1] + 0.7 * (U2[1] - R[1])], "area t-d", `Fläche = ⟨u,v⟩ = ${fmt(dp)}`, nV[0] * 24, -nV[1] * 24 + 4);
+      g += text([(u[0] + R[0]) / 2, (u[1] + R[1]) / 2], "area t-d", `Fläche = ⟨u,v⟩ = ${fmt(dp)}`, 0, 4);
     }
 
+    if (step === 3 && nu > 0.05 && nv > 0.05 && Math.abs(dp) < 0.005) {
+      const uh2 = [u[0] / nu, u[1] / nu], vh2 = [v[0] / nv, v[1] / nv], m = 0.4;
+      g += `<polyline class="rtm" points="${pts([[uh2[0] * m, uh2[1] * m], [(uh2[0] + vh2[0]) * m, (uh2[1] + vh2[1]) * m], [vh2[0] * m, vh2[1] * m]])}"/>`;
+    }
     // Winkelbogen
     if (nu > 0.05 && nv > 0.05) {
       const a1 = Math.atan2(u[1], u[0]), a2 = Math.atan2(v[1], v[0]);
@@ -417,47 +427,39 @@
     }
     g += arrow(O, v, "v") + arrow(O, u, "u");
     if (step >= 2) g += arrow(v, u, "w");
-    if (step < 5) {
+    if (step < 4) {
       g += sideLabel(O, u, v, "u", "u") + sideLabel(O, v, u, "v", "v");
       if (step >= 2) g += sideLabel(v, u, O, "w", "u − v");
     } else {   // ab Schritt 5 ist das Dreieck innen belegt: Beschriftung an den Spitzen bzw. außen
       g += tipLabel(u, "u", "u") + tipLabel(v, "v", "v");
       const m = [(u[0] + v[0]) / 2, (u[1] + v[1]) / 2], L = Math.hypot(...m) || 1;
-      if (step !== 5) g += text(m, "lbl t-w", "u − v", (m[0] / L) * 34, -(m[1] / L) * 34 + 6);
+      if (step !== 4) g += text(m, "lbl t-w", "u − v", (m[0] / L) * 34, -(m[1] / L) * 34 + 6);
     }
 
-    // Höhe, Fußpunkt und die Katheten ‖v‖ cos α und ‖v‖ sin α
-    if (step >= 5 && nu > 0.05) {
-      g += line(v, F, "foot");
+    // Lot, Fußpunkt F; Schritt 4: v = v∥ + v⊥, Schritt 5: Ankathete ‖v‖ cos α
+    if (step >= 4 && nu > 0.05) {
+      const off = [-nV[0] * 0.45, -nV[1] * 0.45];
+      const Po = off, Fo = [F[0] + off[0], F[1] + off[1]];
+      if (step === 4) g += `<g opacity="0.55">${line([F[0] - nV[0] * 25, F[1] - nV[1] * 25], [F[0] + nV[0] * 25, F[1] + nV[1] * 25], "foot")}</g>`;
       if (h > 0.15) {
         const toO = x > 0 ? [-uh[0], -uh[1]] : [uh[0], uh[1]], m = 0.28;
         const A1 = [F[0] + toO[0] * m, F[1] + toO[1] * m], B1 = [A1[0] + nV[0] * m, A1[1] + nV[1] * m], C1 = [F[0] + nV[0] * m, F[1] + nV[1] * m];
         g += `<polyline class="rtm" points="${pts([A1, B1, C1])}"/>`;
-        // Beschriftung der Höhe: auf der Seite ohne Quadrat (Schritt 6: rechts, Schritt 7: links)
-        const side = step === 6 || step === 5 ? 1 : -1;
-        if (step !== 8 && step !== 5) g += text([(v[0] + F[0]) / 2, (v[1] + F[1]) / 2], "lbl t-h", LS, uh[0] * side * 12, 5 + uh[1] * side * -12, side > 0 ? "start" : "end");
       }
-      const off = [-nV[0] * 0.45, -nV[1] * 0.45];
-      const Po = off, Fo = [F[0] + off[0], F[1] + off[1]], Uo = [u[0] + off[0], u[1] + off[1]];
-      g += line(Po, Fo, "seg-p");
-      if (step === 6) {
-        g += line(Fo, Uo, "seg-q");
-        g += text(Fo, "lbl t-x", LC, -nV[0] * 20 - 8, nV[1] * 20 + 6, "end");
-        g += text(Fo, "lbl t-x", LQ, -nV[0] * 20 + 8, nV[1] * 20 + 6, "start");
-      } else if (step === 5) {
-        // Namen der drei Seiten, soweit Platz ist (die Werte stehen immer auch rechts)
-        if (Math.abs(x) * S > 55) g += nameLabel([sx((Po[0] + Fo[0]) / 2), sy((Po[1] + Fo[1]) / 2)], [-nV[0], nV[1]], "Ankathete", LC, "x");
-        if (h * S > 55 && (x < 0 || q * S > 100)) {
-          const aw = x >= 0 ? uh : [-uh[0], -uh[1]];
-          g += nameLabel([sx(v[0] * 0.3 + F[0] * 0.7), sy(v[1] * 0.3 + F[1] * 0.7)], [aw[0], -aw[1]], "Gegenkathete", LS, "h");
+      if (step === 4 && h > 0.15) {
+        g += arrow(F, v, "p") + `<g opacity="0.5">${arrow(O, hv, "p")}</g>` + line(hv, v, "foot");
+        const side = x >= 0 ? 1 : -1, dxl = uh[0] * side * 14;
+        g += text([(v[0] + F[0]) / 2, (v[1] + F[1]) / 2], "lbl t-h", "v⊥", dxl, 5 - uh[1] * side * 14, dxl >= 0 ? "start" : "end");
+      }
+      if (step === 5) g += line(v, F, "foot");
+      if (Math.abs(x) > 0.15) {
+        g += arrow(Po, Fo, "x");
+        g += text([(Po[0] + Fo[0]) / 2, (Po[1] + Fo[1]) / 2], "lbl t-x", "v∥", -nV[0] * 18, nV[1] * 18 + 6);
+        if (step === 5) {   // hochgeklappte Ankathete O→R
+          const R2 = [nV[0] * Math.abs(x), nV[1] * Math.abs(x)];
+          g += `<g opacity="0.6">${arrow(O, R2, "x")}</g>`;
+          g += text([R2[0] / 2, R2[1] / 2], "lbl t-x", "v∥", -uh[0] * 20, uh[1] * 20 + 5, -uh[0] <= 0 ? "end" : "start");
         }
-        if (nv * S > 70) {
-          let n = [-v[1] / nv, v[0] / nv];
-          if (dot(n, F) > 0) n = [-n[0], -n[1]];
-          g += nameLabel([sx(v[0] / 2), sy(v[1] / 2)], [n[0], -n[1]], "Hypotenuse", "‖v‖", "v");
-        }
-      } else {
-        g += text([(Po[0] + Fo[0]) / 2, (Po[1] + Fo[1]) / 2], "lbl t-x", LC, -nV[0] * 16, nV[1] * 16 + 6);
       }
       g += text(F, "lbl t-h", "F", nV[0] * -12, nV[1] * 12 + 16);
     }
@@ -470,77 +472,42 @@
     if (step >= 2) rows += `<div class="vrow cw"><b>‖u − v‖</b><span>${fmt(Math.sqrt(c))}</span></div>`;
     rows += `<div class="vrow"><b>Winkel α</b><span>${nu && nv ? fmt(alpha * 180 / Math.PI, 0) + "°" : "–"}</span></div>`;
     if (step >= 3) rows += `<div class="vrow cd"><b>⟨u, v⟩</b><span>${fmt(dp)}</span></div>`;
-    if (step >= 5) rows += `<div class="vrow cx"><b>${LC}</b><span>${fmt(x)}</span></div><div class="vrow ch"><b>${LS}</b><span>${fmt(h)}</span></div>`;
+    if (step === 4) rows += `<div class="vrow cx"><b>‖v∥‖</b><span>${fmt(Math.abs(x))}</span></div><div class="vrow ch"><b>‖v⊥‖</b><span>${fmt(h)}</span></div><div class="vrow cx"><b>⟨u, v∥⟩</b><span>${fmt(dp)}</span></div><div class="vrow ch"><b>⟨u, v⊥⟩</b><span>0</span></div>`;
+    if (step === 5) rows += `<div class="vrow cx"><b>${LC}</b><span>${fmt(x)}</span></div>`;
     $("rows").innerHTML = rows;
 
-    const eq = $("eq");
-    eq.hidden = step < 3;
-    if (step === 3) {
-      eq.innerHTML =
-        stepEq("Ausmultiplizieren (bilinear und symmetrisch)", "‖u−v‖² = ⟨u−v, u−v⟩ = ⟨u,u⟩ − 2⟨u,v⟩ + ⟨v,v⟩", "") +
-        stepEq("Mit ⟨u,u⟩ = ‖u‖² und ⟨v,v⟩ = ‖v‖²", "‖u−v‖² = ‖u‖² + ‖v‖² − 2⟨u,v⟩", `${fmt(c)} = ${fmt(a)} + ${fmt(b)} − 2·${fmtp(dp)}`);
-    } else if (step === 4) {
-      eq.innerHTML =
-        stepEq("Aus Schritt 3: ‖u−v‖² = ‖u‖² + ‖v‖² − 2⟨u,v⟩. Nach ⟨u,v⟩ auflösen", "⟨u,v⟩ = (‖u‖² + ‖v‖² − ‖u−v‖²) / 2", `(${fmt(a)} + ${fmt(b)} − ${fmt(c)}) / 2 = ${fmt(dp)}`) +
-        stepEq("Mit halben Quadraten geschrieben", "⟨u,v⟩ = ½‖u‖² + ½‖v‖² − ½‖u−v‖²", `${fmt(a / 2)} + ${fmt(b / 2)} − ${fmt(c / 2)} = ${fmt(dp)}`);
-    } else if (step === 5) {
-      eq.innerHTML =
-        `<div class="step-eq"><span class="ttl">Das Dreieck O–F–V hat bei F einen rechten Winkel. Der Winkel bei O ist α.</span></div>` +
-        stepEq("Hypotenuse O–V", "‖v‖", fmt(nv)) +
-        stepEq("Ankathete von α: O–F", LC, `${fmt(nv)} · ${fmtp(cosA)} = ${fmt(x)}`) +
-        stepEq("Gegenkathete von α: F–V", LS, `${fmt(nv)} · ${fmt(sinA)} = ${fmt(h)}`);
-    } else if (step === 6) {
-      eq.innerHTML =
-        `<div class="step-eq"><span class="ttl">Das Lot von der Spitze von v auf die Gerade durch u hat den Fußpunkt F. Das Dreieck O–F–V hat bei F einen rechten Winkel, der Winkel bei O ist α.</span></div>` +
-        stepEq("Hypotenuse O–V", "‖v‖", fmt(nv)) +
-        stepEq("Ankathete von α: O–F", LC, `${fmt(nv)} · ${fmtp(cosA)} = ${fmt(x)}`) +
-        stepEq("Gegenkathete von α: F–V", LS, `${fmt(nv)} · ${fmt(sinA)} = ${fmt(h)}`) +
-        stepEq("Rechtwinkliges Dreieck F–U–V (Pythagoras)", `‖u−v‖² = (${LS})² + (${LQ})²`, `${fmt(c)} = ${fmt(h * h)} + ${fmt(q * q)}`);
-    } else if (step === 7) {
-      eq.innerHTML =
-        stepEq("Zwischenschritt: (‖u‖ − ‖v‖ cos α)² ausmultiplizieren", `‖u−v‖² = (${LS})² + ‖u‖² − 2‖u‖‖v‖ cos α + (${LC})²`, `${fmt(c)} = ${fmt(h * h)} + ${fmt(a)} − 2·${fmt(nu)}·${fmtp(x)} + ${fmt(x * x)}`) +
-        stepEq("Pythagoras im rechtwinkligen Dreieck O–F–V", `(${LC})² + (${LS})² = ‖v‖²`, `${fmt(x * x)} + ${fmt(h * h)} = ${fmt(b)}`) +
-        stepEq("Eingesetzt", "‖u−v‖² = ‖u‖² + ‖v‖² − 2‖u‖‖v‖ cos α", `${fmt(c)} = ${fmt(a)} + ${fmt(b)} − 2·${fmt(nu)}·${fmtp(x)}`);
-    } else if (step === 8) {
-      eq.innerHTML =
-        stepEq("Ergebnis", "⟨u,v⟩ = ‖u‖ · ‖v‖ · cos α", `${fmt(nu)} · ${fmt(nv)} · ${fmtp(cosA)} = ${fmt(dp)}`);
-    }
+    $("eq").hidden = true;
 
-    // Formelleiste unten: ab Schritt 4 die Formel des vorigen Schritts und die neue Formel; was sich ändert, ist markiert
+    // Rechnung unten: schlank. Rot = was sich gegenüber dem vorigen Schritt ändert (alt), grün = neu
     const fb = $("fbar");
-    fb.hidden = step < 4;
-    if (step >= 4) {
-      const Mo = t => `<mark class="old">${t}</mark>`, Mn = t => `<mark class="new">${t}</mark>`;
-      const L0 = "⟨u,v⟩ = ", H = "½‖u‖² + ½‖v‖²", W = `½‖u−v‖²`;
+    fb.hidden = step === 2;
+    if (step !== 2) {
+      const Mo = t => t, Mn = t => t;
+      const L0 = "⟨u,v⟩ = ";
       const E = {
-        4: { prev: `${Mo("‖u−v‖² = ‖u‖² + ‖v‖² − 2⟨u,v⟩")}`, now: `${L0}${Mn(`${H} − ${W}`)}`,
-             num: `${fmt(a / 2)} + ${fmt(b / 2)} − ${fmt(c / 2)} = ${fmt(dp)}`, note: "Nach ⟨u,v⟩ aufgelöst. Jeder Term steht einzeln und halbiert da." },
-        6: { prev: `${L0}${H} − ${Mo("½‖u−v‖²")}`, now: `${L0}${H} − ½${Mn(`[(${LS})² + (${LQ})²]`)}`,
-             num: `${fmt(a / 2)} + ${fmt(b / 2)} − ½(${fmt(h * h)} + ${fmt(q * q)}) = ${fmt(dp)}`, note: "Mit dem Lot und dem Satz des Pythagoras ist ‖u−v‖² ersetzt." },
-        7: { prev: `${L0}${H} − ½[${Mo(`(${LS})² + (${LQ})²`)}]`, now: `${L0}${H} − ½[${Mn("‖u‖² + ‖v‖² − 2‖u‖‖v‖ cos α")}]`,
-             num: `${fmt(a / 2)} + ${fmt(b / 2)} − ½(${fmt(a)} + ${fmt(b)} − 2·${fmt(nu)}·${fmtp(x)}) = ${fmt(dp)}`, note: "Zweimal Pythagoras: Nach dem Ausmultiplizieren wird (‖v‖ cos α)² + (‖v‖ sin α)² = ‖v‖² eingesetzt (Dreieck O–F–V)." },
-        8: { prev: `${L0}${Mo(`${H} − ½[‖u‖² + ‖v‖² − 2‖u‖‖v‖ cos α]`)}`, mid: `${L0}${H} − ½‖u‖² − ½‖v‖² + ‖u‖‖v‖ cos α`, now: `${L0}${Mn("‖u‖ · ‖v‖ · cos α")}`,
-             num: `${fmt(nu)} · ${fmt(nv)} · ${fmtp(cosA)} = ${fmt(dp)}`, note: "½‖u‖² und ½‖v‖² heben sich weg, übrig bleibt ‖u‖ · ‖v‖ · cos α." }
+        1: { title: "Ausgangspunkt", rows: [["Wir setzen voraus", "Für u = (u₁,…,uₙ)ᵀ und v = (v₁,…,vₙ)ᵀ ∈ ℝⁿ ist ⟨u,v⟩ = Σ uᵢvᵢ eine positiv definite Bilinearform.", "now"]], num: "" },
+        3: { title: "Rechnung", rows: [
+               ["Es gilt", "‖u−v‖² = ⟨u−v, u−v⟩ = … = ‖u‖² + ‖v‖² − 2⟨u,v⟩", "prev"],
+               ["Also", `${L0}${Mn("½‖u‖² + ½‖v‖² − ½‖u−v‖²")}`, "now"]],
+             num: `${fmt(a / 2)} + ${fmt(b / 2)} − ${fmt(c / 2)} = ${fmt(dp)}` },
+        4: { title: "Rechnung", rows: [
+               ["Da v = v⊥ + v∥ gilt", `${L0}${Mn("⟨u,v∥⟩ + ⟨u,v⊥⟩")} = ⟨u,v∥⟩ + ${Mn("0")} = ${Mn("⟨u,v∥⟩")}`, "now"]], num: "" },
+        5: { title: "Rechnung", rows: [
+               ["Da ‖v∥‖ = ‖v‖ cos α gilt", `${L0}${Mo("⟨u,v∥⟩")} = ⟨u, ${Mn("(‖v‖ cos α / ‖u‖) · u")}⟩ = ${Mn("(‖v‖ cos α / ‖u‖) · ⟨u,u⟩")} = ${Mn("‖u‖ · ‖v‖ · cos α")}`, "now"]], num: "" }
       }[step];
-      const row = (tag, html, cls) => `<div class="fl ${cls}"><span class="tg">${tag}</span><span class="fx">${html}</span></div>`;
-      $("fbLines").innerHTML = row(`Vorher · Schritt ${DISP[PREVS[step]]}`, E.prev, "prev") + (E.mid ? row("Zwischenschritt", E.mid, "mid") : "") + row(`Jetzt · Schritt ${DISP[step]}`, E.now, "now");
-      $("fbN").textContent = E.num; $("fbNote").textContent = E.note;
+      $("fbTitle").textContent = E.title;
+      $("fbLines").innerHTML = E.rows.map(([tag, html, cls]) => `<div class="fl ${cls}"><span class="tg">${tag}</span><span class="fx">${html}</span></div>`).join("");
+      $("fbN").textContent = E.num; $("fbNote").textContent = "";
       const P = [{ v: a / 2, cls: "u", lbl: "½‖u‖²" }, { v: b / 2, cls: "v", lbl: "½‖v‖²" }];
-      $("fbBars").innerHTML =
-        step <= 5 ? bars(P, [{ v: c / 2, cls: "w", lbl: "½‖u−v‖²" }], dp)
-        : step === 6 ? bars(P, [{ v: h * h / 2, cls: "h", lbl: `½(${LS})²` }, { v: q * q / 2, cls: "q", lbl: `½(${LQ})²` }], dp)
-        : "";
+      $("fbBars").innerHTML = step === 3 ? bars(P, [{ v: c / 2, cls: "w", lbl: "½‖u−v‖²" }], dp) : "";
     }
 
     $("cap").textContent = [
       "Beide Vektoren beginnen im selben Punkt. Ziehe die farbigen Punkte.",
       "Der Vektor u − v verläuft von der Spitze von v zur Spitze von u. Die drei Pfeile bilden ein Dreieck.",
-      "Über jeder Seite des Dreiecks steht ein Quadrat. Seine Fläche ist das Längenquadrat der Seite.",
-      "Die halben Quadrate (Dreiecke) haben die halbe Fläche. Gestrichelt: das volle Quadrat. ⟨u,v⟩ ist die Summe der beiden ersten Anteile minus den dritten.",
-      "Das Lot von der Spitze von v auf die Gerade durch u hat den Fußpunkt F. Im rechtwinkligen Dreieck O–F–V ist ‖v‖ die Hypotenuse, die Ankathete von α ist ‖v‖ cos α und die Gegenkathete ‖v‖ sin α.",
-      "Das Lot von der Spitze von v hat den Fußpunkt F. Im rechtwinkligen Dreieck O–F–V ist die Ankathete ‖v‖ cos α und die Gegenkathete ‖v‖ sin α. Das Dreieck F–U–V ist rechtwinklig: Das Quadrat über u − v ist so groß wie die beiden Quadrate über den Katheten zusammen.",
-      "Im rechtwinkligen Dreieck O–F–V sind (‖v‖ cos α)² und (‖v‖ sin α)² zusammen so groß wie das Quadrat über v.",
-      "Das Rechteck hat die Breite ‖u‖ und die Höhe ‖v‖ cos α. Der gepunktete Bogen dreht die Strecke ‖v‖ cos α nach oben. Seine Fläche ist ⟨u,v⟩."
+      "Über jeder Seite des Dreiecks steht ein Quadrat, im Bild nur seine Hälfte (gestrichelt: das volle Quadrat), also ein Dreieck. ⟨u,v⟩ ist die Summe der Dreiecke über u und v minus dem Dreieck über u − v.",
+      "Das Lot von der Spitze von v auf die Gerade durch u zerlegt v in die Ankathete v∥ (auf der Geraden durch u) und die Gegenkathete v⊥ (senkrecht dazu). In diesem Schritt lässt sich v nur auf der gestrichelten Senkrechten ziehen.",
+      "Die Ankathete v∥ wird um O senkrecht zu u hochgeklappt (gepunkteter Bogen, rosa). Mit u spannt sie ein Rechteck auf: Breite ‖u‖, Höhe ‖v∥‖ = ‖v‖ cos α. Seine Fläche ist ⟨u,v⟩."
     ][step - 1];
   }
   const fit = () => svg.setAttribute("viewBox", window.innerWidth < 600 ? "100 50 600 500" : "0 0 800 600");
